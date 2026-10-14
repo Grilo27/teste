@@ -226,103 +226,145 @@ function _drawRooster(c,cx,gy,pl){
   const bob=pl.state==='idle'?Math.sin(now*.004)*2:0;
   const wk=Math.sin((pl.animT||0)*.38)*9;
   const H=pl.feathers,C=pl.comb;
-  const bx=cx-f*3,by=gy-50+bob;
-  const hx=cx+f*23,hy=by-27;
-  const tailX=cx-f*21,tailY=by-5;
+  const bx=cx-f*3,by=gy-52+bob;
+  const hx=cx+f*22,hy=by-24;
+  const tX=cx-f*20,tY=by-10;
+  const tailX=tX,tailY=tY;
 
-  // ── TAIL (14-feather fan with quill detail) ──────────────────
+  // ── TAIL: fan feathers ───────────────────────────────────────
   for(let i=0;i<14;i++){
     const t=(i/13)-.5;
     const outer=Math.abs(t)>.38;
     const ang=(f>0?Math.PI:0)+t*1.7-.12*f;
-    const len=outer?26+Math.abs(t)*18:36+Math.abs(.5-Math.abs(t))*32;
-    c.strokeStyle=hsl(H+t*28,outer?62:76,outer?22:30+Math.round((1-Math.abs(t*2))*14));
-    c.lineWidth=outer?1.8:4.5-Math.abs(t)*3;c.lineCap='round';
-    c.beginPath();c.moveTo(tailX,tailY);
-    c.quadraticCurveTo(tailX+Math.cos(ang-.18*f)*len*.52,tailY+Math.sin(ang-.18*f)*len*.52-14,
-      tailX+Math.cos(ang)*len,tailY+Math.sin(ang)*len);c.stroke();
+    const len=outer?24+Math.abs(t)*16:34+Math.abs(.5-Math.abs(t))*28;
+    c.strokeStyle=hsl(H+t*24,outer?60:74,outer?20:26+Math.round((1-Math.abs(t*2))*14));
+    c.lineWidth=outer?1.6:4-Math.abs(t)*2.8;c.lineCap='round';
+    c.beginPath();c.moveTo(tX,tY);
+    c.quadraticCurveTo(tX+Math.cos(ang-.16*f)*len*.5,tY+Math.sin(ang-.16*f)*len*.5-12,
+      tX+Math.cos(ang)*len,tY+Math.sin(ang)*len);c.stroke();
     if(!outer){
-      c.strokeStyle=hsl(H+t*18,58,18);c.lineWidth=.7;
-      c.beginPath();c.moveTo(tailX,tailY);
-      c.lineTo(tailX+Math.cos(ang)*len*.65,tailY+Math.sin(ang)*len*.65);c.stroke();
+      c.strokeStyle=hsl(H+t*14,54,16);c.lineWidth=.65;
+      c.beginPath();c.moveTo(tX,tY);
+      c.lineTo(tX+Math.cos(ang)*len*.62,tY+Math.sin(ang)*len*.62);c.stroke();
     }
+  }
+  // ── TAIL: sickle feathers (3 long dramatic curves) ───────────
+  const sickles=[
+    {cof:-f*20,coy:-44,ex:-f*4,ey:-62,w:3.8,dh:12},
+    {cof:-f*17,coy:-38,ex:-f*1,ey:-54,w:3.2,dh:6},
+    {cof:-f*13,coy:-31,ex:f*4,   ey:-45,w:2.6,dh:0},
+  ];
+  for(const sk of sickles){
+    const qcx=tX+sk.cof,qcy=tY+sk.coy,ex=tX+sk.ex,ey=tY+sk.ey;
+    c.save();c.lineCap='round';
+    c.strokeStyle=hsl(H+sk.dh-12,66,12);c.lineWidth=sk.w+2;
+    c.beginPath();c.moveTo(tX,tY);c.quadraticCurveTo(qcx,qcy,ex,ey);c.stroke();
+    c.strokeStyle=hsl(H+sk.dh,80,30);c.lineWidth=sk.w;
+    c.beginPath();c.moveTo(tX,tY);c.quadraticCurveTo(qcx,qcy,ex,ey);c.stroke();
+    c.strokeStyle=hsl(H+sk.dh+22,86,55);c.lineWidth=sk.w*.3;
+    c.beginPath();c.moveTo(tX,tY);
+    c.quadraticCurveTo(qcx*.92+tX*.08,qcy*.92+tY*.08,ex,ey);c.stroke();
+    c.restore();
   }
 
   // ── BACK LEG (thigh→knee→shin→foot) ─────────────────────────
   const lbBx=bx-f*8,lbBy=by+24;
   const lbKx=lbBx-f*1,lbKy=gy-26+wk;
   const lbAx=lbKx+f*1,lbAy=gy-2;
-  c.lineCap='round';c.strokeStyle=hsl(28,42,34);c.lineWidth=5;
-  c.beginPath();c.moveTo(lbBx,lbBy);c.lineTo(lbKx,lbKy);c.stroke();
-  c.strokeStyle=hsl(26,36,26);c.lineWidth=4;
+  c.lineCap='round';c.strokeStyle=hsl(H,52,32);c.lineWidth=6;
+  c.beginPath();c.moveTo(lbBx,lbBy);c.lineTo(lbKx,lbKy+4);c.stroke();
+  c.strokeStyle=hsl(26,44,28);c.lineWidth=4.5;
   c.beginPath();c.moveTo(lbKx,lbKy);c.lineTo(lbAx,lbAy);c.stroke();
-  c.fillStyle=hsl(28,38,30);c.beginPath();c.arc(lbKx,lbKy,4,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(24,28,20);c.lineWidth=1;
+  for(let i=1;i<5;i++){const ly=lbKy+(lbAy-lbKy)*i/5;c.beginPath();c.moveTo(lbAx-f*3.5,ly);c.lineTo(lbAx+f*3.5,ly+1.5);c.stroke();}
+  c.fillStyle=hsl(26,40,26);c.beginPath();c.arc(lbKx,lbKy,4.5,0,Math.PI*2);c.fill();
   _drawFoot(c,lbAx,lbAy,f);
 
   // ── BODY ─────────────────────────────────────────────────────
-  const bf=c.createRadialGradient(bx+f*7,by-10,2,bx,by,30);
-  bf.addColorStop(0,hsl(H,74,62));bf.addColorStop(.55,hsl(H,71,46));bf.addColorStop(1,hsl(H,56,26));
-  c.fillStyle=bf;c.beginPath();c.ellipse(bx,by,24,30,.1*f,0,Math.PI*2);c.fill();
-  // feather chevron texture
-  for(let row=0;row<4;row++){
-    for(let col=-2;col<=2;col++){
-      const fx=bx+f*col*7+f*3,fy=by-12+row*11;
-      if(Math.hypot((fx-bx)/24,(fy-by)/30)>.88)continue;
-      c.fillStyle=hsl(H+col*3,62,28+row*2);
-      c.beginPath();c.ellipse(fx,fy,5.5,4,.28*f,0,Math.PI*2);c.fill();
+  const bf=c.createRadialGradient(bx+f*8,by-12,2,bx,by,32);
+  bf.addColorStop(0,hsl(H,74,64));bf.addColorStop(.48,hsl(H,71,48));bf.addColorStop(1,hsl(H,57,24));
+  c.fillStyle=bf;c.beginPath();c.ellipse(bx,by,26,32,.08*f,0,Math.PI*2);c.fill();
+  // feather scale shapes (pointed cap, rounded base)
+  for(let row=0;row<5;row++){
+    for(let col=-2;col<=3;col++){
+      const fx=bx+f*(col*7.5-5),fy=by-18+row*11;
+      if(Math.hypot((fx-bx)/26,(fy-by)/32)>.88)continue;
+      const d=Math.hypot((fx-bx)/26,(fy-by)/32);
+      c.fillStyle=hsl(H+col*3,58,24+row*2-d*8);
+      c.beginPath();
+      c.moveTo(fx-f*5,fy-1);
+      c.quadraticCurveTo(fx+f*1,fy-6,fx+f*6,fy-1);
+      c.quadraticCurveTo(fx+f*4,fy+5,fx-f*4,fy+5);
+      c.closePath();c.fill();
     }
   }
-  c.strokeStyle=hsl(H,40,18);c.lineWidth=1.5;
-  c.beginPath();c.ellipse(bx,by,24,30,.1*f,0,Math.PI*2);c.stroke();
-  const bh2=c.createRadialGradient(bx+f*11,by-8,1,bx+f*5,by-3,20);
-  bh2.addColorStop(0,`hsla(${H+5},82%,76%,.42)`);bh2.addColorStop(1,`hsla(${H},72%,44%,0)`);
-  c.fillStyle=bh2;c.beginPath();c.ellipse(bx+f*5,by-3,15,20,0,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(H,38,16);c.lineWidth=1.5;
+  c.beginPath();c.ellipse(bx,by,26,32,.08*f,0,Math.PI*2);c.stroke();
+  const bh2=c.createRadialGradient(bx+f*12,by-10,1,bx+f*6,by-4,22);
+  bh2.addColorStop(0,`hsla(${H+6},84%,78%,.5)`);bh2.addColorStop(1,`hsla(${H},72%,46%,0)`);
+  c.fillStyle=bh2;c.beginPath();c.ellipse(bx+f*6,by-4,17,22,0,0,Math.PI*2);c.fill();
   // iridescent sheen (animated)
   const iShift=Math.sin(now*.0016)*35;
-  const ir=c.createLinearGradient(bx-f*22,by-28,bx+f*18,by+24);
+  const ir=c.createLinearGradient(bx-f*24,by-30,bx+f*20,by+26);
   ir.addColorStop(0,`hsla(${H+iShift},90%,80%,0)`);
   ir.addColorStop(.38,`hsla(${H+iShift+50},95%,76%,.17)`);
   ir.addColorStop(.78,`hsla(${H+iShift+100},88%,72%,.09)`);
   ir.addColorStop(1,`hsla(${H+iShift},90%,80%,0)`);
-  c.fillStyle=ir;c.beginPath();c.ellipse(bx,by,24,30,.1*f,0,Math.PI*2);c.fill();
+  c.fillStyle=ir;c.beginPath();c.ellipse(bx,by,26,32,.08*f,0,Math.PI*2);c.fill();
 
-  // ── WING (primary+secondary layers) ─────────────────────────
-  const wAng=(pl.wingFlap>0||pl.state==='air')?-.56*f:(pl.state==='peck')?-.32*f:.09*f;
-  c.save();c.translate(bx-f*2,by);c.rotate(wAng);
-  c.fillStyle=hsl(H+5,64,44);
-  c.beginPath();c.ellipse(-f*1,0,13,16,.12*f,0,Math.PI*2);c.fill();
-  const wp=c.createLinearGradient(0,-20,f*12,22);
-  wp.addColorStop(0,hsl(H,64,40));wp.addColorStop(1,hsl(H-6,56,22));
-  c.fillStyle=wp;c.beginPath();c.ellipse(-f,4,15,23,.12*f,0,Math.PI*2);c.fill();
-  for(let i=0;i<7;i++){
-    c.strokeStyle=hsl(H+i*4,56,16+(7-i)*3);c.lineWidth=i<3?1:1.3;
-    c.beginPath();c.moveTo(-f*2+f*.4*i,-10+i*5.5);
-    c.quadraticCurveTo(-f*8+f*.3*i,-3+i*5.5,-f*16-i,3+i*4);c.stroke();
+  // ── WING: individual primary feathers ────────────────────────
+  const wAng=(pl.wingFlap>0||pl.state==='air')?-.56*f:(pl.state==='peck')?-.30*f:.08*f;
+  c.save();c.translate(bx-f*2,by+2);c.rotate(wAng);
+  // covert base
+  c.fillStyle=hsl(H+5,62,44);c.beginPath();c.ellipse(-f,0,14,15,.1*f,0,Math.PI*2);c.fill();
+  // 8 primary feathers as tapered shapes
+  for(let i=0;i<8;i++){
+    const t=i/7,fLen=16+t*11,fWid=4.5-t*.5;
+    const angle=(-.28-t*.9)*f;
+    const px=-f*3+i*f*1.4,py=3+i*1.8;
+    c.save();c.translate(px,py);c.rotate(angle);
+    c.fillStyle=hsl(H-2+i*2.5,56,16+i*3.5);
+    c.beginPath();
+    c.moveTo(0,0);
+    c.quadraticCurveTo(fWid*.8,fLen*.35,fWid*.55,fLen);
+    c.lineTo(0,fLen+3);
+    c.quadraticCurveTo(-fWid*.35,fLen*.35,0,0);
+    c.fill();
+    c.strokeStyle=hsl(H+i*3,48,10);c.lineWidth=.6;
+    c.beginPath();c.moveTo(0,1);c.lineTo(0,fLen+2);c.stroke();
+    c.restore();
   }
-  c.strokeStyle=hsl(H,38,15);c.lineWidth=1;
-  c.beginPath();c.ellipse(-f,4,15,23,.12*f,0,Math.PI*2);c.stroke();
+  c.strokeStyle=hsl(H,36,14);c.lineWidth=1;
+  c.beginPath();c.ellipse(-f,0,14,15,.1*f,0,Math.PI*2);c.stroke();
   c.restore();
 
-  // ── NECK HACKLE ──────────────────────────────────────────────
-  for(let i=0;i<5;i++){
-    c.fillStyle=hsl(H+9,83,58-i*5);
-    c.beginPath();c.ellipse(bx+f*(8+i*3.5),by-15-i*5,3.5,6+i*.8,-.22*f,0,Math.PI*2);c.fill();
-    c.strokeStyle=hsl(H,50,28);c.lineWidth=.5;c.stroke();
+  // ── NECK HACKLE: individual flowing feathers ─────────────────
+  for(let i=0;i<7;i++){
+    const t=i/6,hkx=bx+f*(9+t*14),hky=by-16-t*14,hkLen=10+t*7;
+    c.fillStyle=hsl(H+12,88,58-t*10);
+    c.beginPath();
+    c.moveTo(hkx,hky);
+    c.quadraticCurveTo(hkx+f*(2.5+t*2),hky-hkLen*.45,hkx+f*(1+t*.5),hky-hkLen);
+    c.quadraticCurveTo(hkx-f*2,hky-hkLen*.4,hkx,hky);
+    c.fill();
+    c.strokeStyle=hsl(H+4,52,26);c.lineWidth=.4;c.stroke();
   }
-  c.strokeStyle=hsl(H,72,42);c.lineWidth=9.5;c.lineCap='round';
-  c.beginPath();c.moveTo(bx+f*9,by-12);c.quadraticCurveTo(bx+f*19,by-23,hx-f*6,hy+14);c.stroke();
-  c.strokeStyle=hsl(H+5,66,55);c.lineWidth=5;
-  c.beginPath();c.moveTo(bx+f*10,by-13);c.quadraticCurveTo(bx+f*20,by-24,hx-f*4,hy+13);c.stroke();
+  c.strokeStyle=hsl(H,70,40);c.lineWidth=11;c.lineCap='round';
+  c.beginPath();c.moveTo(bx+f*9,by-12);c.quadraticCurveTo(bx+f*19,by-24,hx-f*5,hy+14);c.stroke();
+  c.strokeStyle=hsl(H+5,68,54);c.lineWidth=6;
+  c.beginPath();c.moveTo(bx+f*10,by-13);c.quadraticCurveTo(bx+f*20,by-25,hx-f*3,hy+13);c.stroke();
 
   // ── FRONT LEG (thigh→knee→shin→foot+spur) ───────────────────
   const lfBx=bx+f*7,lfBy=by+26;
   const lfKx=lfBx+f*5,lfKy=gy-22-wk*.4;
   const lfAx=lfKx+f*2,lfAy=gy-2;
-  c.strokeStyle=hsl(28,42,34);c.lineWidth=5.5;
-  c.beginPath();c.moveTo(lfBx,lfBy);c.lineTo(lfKx,lfKy);c.stroke();
-  c.strokeStyle=hsl(26,36,26);c.lineWidth=4.5;
+  c.strokeStyle=hsl(H,52,32);c.lineWidth=6.5;
+  c.beginPath();c.moveTo(lfBx,lfBy);c.lineTo(lfKx,lfKy+4);c.stroke();
+  c.strokeStyle=hsl(26,38,26);c.lineWidth=5;
   c.beginPath();c.moveTo(lfKx,lfKy);c.lineTo(lfAx,lfAy);c.stroke();
-  c.fillStyle=hsl(28,38,30);c.beginPath();c.arc(lfKx,lfKy,4.5,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(24,26,18);c.lineWidth=1;
+  for(let i=1;i<6;i++){const ly=lfKy+(lfAy-lfKy)*i/6;c.beginPath();c.moveTo(lfAx-f*4,ly);c.lineTo(lfAx+f*4,ly+1.5);c.stroke();}
+  c.fillStyle=hsl(26,42,28);c.beginPath();c.arc(lfKx,lfKy,5,0,Math.PI*2);c.fill();
   // curved spur on lower leg
   const sg=pl.state==='spur';
   const spBx=lfKx-f*2,spBy=lfKy+16;
@@ -356,11 +398,15 @@ function _drawRooster(c,cx,gy,pl){
   for(const[dx,dy]of combPts)c.lineTo(hx+dx*f,hy+dy);
   c.lineTo(hx+f*13,hy-5);c.stroke();
 
-  // ── WATTLE ───────────────────────────────────────────────────
-  c.fillStyle=hsl(C,88,34);c.beginPath();
-  c.moveTo(hx+f*8,hy+5);c.quadraticCurveTo(hx+f*14,hy+11,hx+f*10,hy+21);
-  c.quadraticCurveTo(hx+f*4,hy+23,hx+f*6,hy+13);c.closePath();c.fill();
-  c.strokeStyle=hsl(C,60,20);c.lineWidth=.8;c.stroke();
+  // ── WATTLE (double lobe) ─────────────────────────────────────
+  c.fillStyle=hsl(C,86,28);c.beginPath();
+  c.moveTo(hx+f*9,hy+5);c.quadraticCurveTo(hx+f*16,hy+12,hx+f*12,hy+24);
+  c.quadraticCurveTo(hx+f*5,hy+26,hx+f*8,hy+14);c.closePath();c.fill();
+  c.strokeStyle=hsl(C,58,18);c.lineWidth=.8;c.stroke();
+  c.fillStyle=hsl(C,82,32);c.beginPath();
+  c.moveTo(hx+f*7,hy+7);c.quadraticCurveTo(hx+f*13,hy+13,hx+f*10,hy+22);
+  c.quadraticCurveTo(hx+f*4,hy+23,hx+f*7,hy+14);c.closePath();c.fill();
+  c.strokeStyle=hsl(C,55,20);c.lineWidth=.6;c.stroke();
 
   // ── BEAK (upper+lower mandibles) ────────────────────────────
   const bp=pl.state==='peck'?f*12:0;
@@ -372,8 +418,9 @@ function _drawRooster(c,cx,gy,pl){
   c.lineTo(hx+f*10+bp,hy+7);c.closePath();c.fill();
   c.strokeStyle='rgba(100,80,0,.55)';c.lineWidth=.7;
   c.beginPath();c.moveTo(hx+f*10+bp,hy);c.lineTo(hx+f*24+bp,hy+1);c.stroke();
+  c.fillStyle='#2a2000';c.beginPath();c.arc(hx+f*24+bp,hy-.5,1.8,0,Math.PI*2);c.fill();
 
-  // ── EYE (orbital+iris pattern+pupil+highlight) ───────────────
+  // ── EYE (orbital+iris pattern+pupil+highlights) ──────────────
   c.fillStyle=hsl(H-8,48,22);c.beginPath();c.arc(hx+f*4,hy-4,7,0,Math.PI*2);c.fill();
   c.fillStyle='#ca9400';c.beginPath();c.arc(hx+f*4,hy-4,5.5,0,Math.PI*2);c.fill();
   for(let i=0;i<8;i++){
@@ -383,12 +430,31 @@ function _drawRooster(c,cx,gy,pl){
   }
   c.fillStyle='#060300';c.beginPath();c.arc(hx+f*4+f*.5,hy-4,3.2,0,Math.PI*2);c.fill();
   c.fillStyle='rgba(255,255,255,.85)';c.beginPath();c.arc(hx+f*4+f*.5+.6,hy-5.5,1.2,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.28)';c.beginPath();c.arc(hx+f*4+f*.5-1,hy-3,0.5,0,Math.PI*2);c.fill();
 
   // ── NAME TAG ─────────────────────────────────────────────────
   if(!pl.hideTag){
     c.font='bold 12px Georgia';c.textAlign='center';
     c.fillStyle='rgba(0,0,0,.65)';c.fillRect(cx-32,gy-(pl.h||64)-24,64,18);
     c.fillStyle=hsl(H,95,82);c.fillText(pl.name,cx,gy-(pl.h||64)-10);
+  }
+}
+
+function _drawCrowd(c){
+  for(let row=0;row<2;row++){
+    const baseY=260+row*24,alpha=0.50-row*.1,sp=17+row*4;
+    for(let x=60;x<W-40;x+=sp+Math.sin(x*.19)*2){
+      if(x<225&&row===0)continue;
+      const hy=baseY+Math.sin(x*.04)*4,sc=.82+row*.1;
+      c.fillStyle=`rgba(12,6,2,${alpha})`;
+      c.beginPath();c.ellipse(x,hy,5*sc,12*sc,0,0,Math.PI*2);c.fill();
+      c.beginPath();c.arc(x+Math.sin(x*.22)*1.5,hy-14*sc,5.5*sc,0,Math.PI*2);c.fill();
+      if((x+row*11)%43<7){
+        c.beginPath();c.moveTo(x,hy-5*sc);
+        c.lineTo(x+(((x|0)%2*2-1)*9*sc),hy-15*sc);
+        c.strokeStyle=`rgba(12,6,2,${alpha})`;c.lineWidth=3*sc;c.stroke();
+      }
+    }
   }
 }
 
@@ -432,6 +498,14 @@ function drawArena(){
   ctx.beginPath();ctx.moveTo(0,280);
   for(let x=0;x<=W;x+=50){ctx.lineTo(x,278+Math.sin(x*.022+1)*20+Math.cos(x*.014)*14);}
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+
+  // crowd spectators on the hills
+  _drawCrowd(ctx);
+
+  // warm arena atmosphere
+  const atm=ctx.createRadialGradient(W/2,GROUND_Y-40,60,W/2,GROUND_Y+20,360);
+  atm.addColorStop(0,'rgba(255,210,110,.10)');atm.addColorStop(.65,'rgba(255,160,60,.05)');atm.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=atm;ctx.fillRect(0,0,W,H);
 
   // barn (left background)
   _drawBarn(ctx,50,210);
