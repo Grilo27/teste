@@ -97,6 +97,31 @@ const ROSTERS=[
    abilityDesc:['Super armadura.','Knockback devastador.'],
    stats:{vel:3,atk:10,def:10},
    ability:{speed:3,atkDmg:14,atkCD:48,spurDmg:38,spurCD:95,kbMult:2.4,defMult:0.68,dblJump:false}},
+  {name:'VENENOSO',feathers:140,comb:285,element:'poison',
+   abilityName:'VENENO MORTAL',
+   abilityDesc:['Bicada empilha veneno.','Até 3x DoT acumulado.'],
+   stats:{vel:6,atk:8,def:6},
+   ability:{speed:5.5,atkDmg:11,atkCD:24,spurDmg:20,spurCD:65,kbMult:1,defMult:1,dblJump:false}},
+  {name:'BERSERKER',feathers:5,comb:0,  element:'rage',
+   abilityName:'FÚRIA CRESCENTE',
+   abilityDesc:['Ataque escala com HP baixo.','Imparável no limite.'],
+   stats:{vel:7,atk:8,def:4},
+   ability:{speed:5,atkDmg:10,atkCD:28,spurDmg:22,spurCD:70,kbMult:1.3,defMult:1.1,dblJump:false}},
+  {name:'VAMPIRO', feathers:345,comb:350,element:'vampire',
+   abilityName:'ROUBO DE VIDA',
+   abilityDesc:['Bicada rouba HP inimigo.','Se cura ao atacar.'],
+   stats:{vel:5,atk:8,def:6},
+   ability:{speed:5,atkDmg:12,atkCD:30,spurDmg:22,spurCD:72,kbMult:1.1,defMult:1,dblJump:false}},
+  {name:'FANTASMA',feathers:220,comb:235,element:'ghost',
+   abilityName:'TRAVESSIA ESPECTRAL',
+   abilityDesc:['Esporão: fica invencível.','Duplo salto espectral.'],
+   stats:{vel:8,atk:6,def:5},
+   ability:{speed:6.5,atkDmg:9,atkCD:26,spurDmg:18,spurCD:60,kbMult:0.9,defMult:0.92,dblJump:true}},
+  {name:'TITÃ',    feathers:35, comb:25, element:'titan',
+   abilityName:'TERREMOTO',
+   abilityDesc:['Queda forte = tremor AOE.','Knockback devastador.'],
+   stats:{vel:3,atk:9,def:9},
+   ability:{speed:3,atkDmg:13,atkCD:45,spurDmg:35,spurCD:90,kbMult:2,defMult:0.72,dblJump:false}},
 ];
 
 /* ── util ────────────────────────────────────────────────────────── */
@@ -168,7 +193,7 @@ class Player{
       atkCD:0,spurCD:0,atkTimer:0,spurTimer:0,hitTimer:0,
       dead:false,deathAnim:0,animT:0,wingFlap:0,state:'idle',
       ability:c.ability,
-      burning:0,frozen:0,stunned:0,
+      burning:0,frozen:0,stunned:0,poisoned:0,phaseFrames:0,
     });
   }
   reset(){
@@ -176,7 +201,7 @@ class Player{
     this.vx=this.vy=0;this.hp=this.maxHp;this.grounded=false;
     this.atkCD=this.spurCD=this.atkTimer=this.spurTimer=this.hitTimer=0;
     this.dead=false;this.deathAnim=0;this.state='idle';this.jumpCount=0;
-    this.burning=this.frozen=this.stunned=0;
+    this.burning=this.frozen=this.stunned=this.poisoned=this.phaseFrames=0;
   }
   update(other){
     if(this.dead){this.deathAnim=Math.min(this.deathAnim+.05,1);return;}
@@ -194,12 +219,20 @@ class Player{
     }
     if(this.frozen>0)this.frozen--;
     if(this.stunned>0)this.stunned--;
+    if(this.poisoned>0){
+      this.poisoned--;
+      if(this.poisoned%10===0){this.hp=Math.max(0,this.hp-.65);spawnP(this.x+this.w/2,this.y+30,2,130);}
+      if(this.hp<=0)this.dead=true;
+    }
+    if(this.phaseFrames>0)this.phaseFrames--;
 
     const L=K[this.ctrl.left],R=K[this.ctrl.right],
           J=K[this.ctrl.jump],A=K[this.ctrl.atk],S=K[this.ctrl.spur];
     const frozenMult=this.frozen>0?0.32:1;
     const stunnedBlock=this.stunned>0;
-    const spd=this.ability.speed*frozenMult;
+    const rageBoost=this.element==='rage'?1+(1-this.hp/this.maxHp)*1.8:1;
+    const rageSpd=this.element==='rage'?1+(1-this.hp/this.maxHp)*.6:1;
+    const spd=this.ability.speed*frozenMult*rageSpd;
 
     if(!L&&!R&&other)this.facing=other.x>this.x?1:-1;
     if(L){this.vx=-spd;this.facing=-1;}
@@ -215,14 +248,29 @@ class Player{
     }
     if(!J)this.canJump=true;
     if(A&&this.atkCD===0&&this.atkTimer===0&&!stunnedBlock){this.atkTimer=14;this.atkCD=this.ability.atkCD;}
-    if(S&&this.spurCD===0&&this.spurTimer===0&&!stunnedBlock){this.spurTimer=20;this.spurCD=this.ability.spurCD;}
+    if(S&&this.spurCD===0&&this.spurTimer===0&&!stunnedBlock){
+      this.spurTimer=20;this.spurCD=this.ability.spurCD;
+      if(this.element==='ghost')this.phaseFrames=42;
+    }
 
+    const wasGrounded=this.grounded,prevFallVy=this.vy;
     this.vy+=.62;this.x+=this.vx;this.y+=this.vy;
     this.grounded=false;
     for(const p of PLATFORMS){
       if(this.x+this.w>p.x+4&&this.x<p.x+p.w-4&&
          this.vy>=0&&this.y+this.h>p.y&&this.y+this.h<p.y+p.h+22){
         this.y=p.y-this.h;this.vy=0;this.grounded=true;this.jumpCount=0;
+      }
+    }
+    // titan earthquake on hard landing
+    if(!wasGrounded&&this.grounded&&prevFallVy>9&&this.element==='titan'&&other&&!other.dead){
+      const dist=Math.abs((this.x+this.w/2)-(other.x+other.w/2));
+      if(dist<140){
+        const dmg=Math.round(20*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=38;
+        other.vx=this.facing*6*this.ability.kbMult;other.vy=-4.5;
+        spawnP(this.x+this.w/2,this.y+this.h,20,30);shake(7);
+        if(other.hp<=0)other.dead=true;
       }
     }
     this.x=clamp(this.x,0,W-this.w);
@@ -237,32 +285,34 @@ class Player{
     else if(Math.abs(this.vx)>.6)this.state='walk';
     else this.state='idle';
 
-    if(other&&!other.dead&&other.hitTimer===0){
+    if(other&&!other.dead&&other.hitTimer===0&&other.phaseFrames===0){
+      const eHPeck={fire:20,lightning:58,ice:198,shadow:285,earth:30,poison:130,rage:5,vampire:345,ghost:230,titan:32};
+      const eHSpur={fire:15,lightning:55,ice:200,shadow:280,earth:28,poison:125,rage:8,vampire:340,ghost:228,titan:30};
       if(this.atkTimer>0){
         const hx=this.x+(this.facing>0?this.w+4:-38);
         if(rectsOvlp(hx,this.y+4,38,24,other.x,other.y,other.w,other.h)){
-          const dmg=Math.round(this.ability.atkDmg*other.ability.defMult);
+          const dmg=Math.round(this.ability.atkDmg*other.ability.defMult*rageBoost);
           other.hp=Math.max(0,other.hp-dmg);other.hitTimer=28;
           other.vx=this.facing*3.5*this.ability.kbMult;other.vy=-2.5*this.ability.kbMult;
-          const eH={fire:20,lightning:58,ice:198,shadow:285,earth:30};
-          if(this.element==='fire')other.burning=Math.max(other.burning,80);
-          spawnP(other.x+other.w/2,other.y+12,9,eH[this.element]||0);shake(3);
+          if(this.element==='fire')   other.burning=Math.max(other.burning,80);
+          if(this.element==='poison') other.poisoned=Math.min(210,other.poisoned+62);
+          if(this.element==='vampire'){this.hp=Math.min(this.maxHp,this.hp+Math.round(dmg*.4));spawnP(this.x+this.w/2,this.y+22,5,345);}
+          spawnP(other.x+other.w/2,other.y+12,9,eHPeck[this.element]||0);shake(3);
           if(other.hp<=0)other.dead=true;
         }
       }
       if(this.spurTimer>5){
         const hx=this.x+(this.facing>0?this.w-10:-48);
         if(rectsOvlp(hx,this.y+26,52,34,other.x,other.y,other.w,other.h)){
-          const dmg=Math.round(this.ability.spurDmg*other.ability.defMult);
+          const dmg=Math.round(this.ability.spurDmg*other.ability.defMult*rageBoost);
           other.hp=Math.max(0,other.hp-dmg);other.hitTimer=40;
           other.vx=this.facing*7.5*this.ability.kbMult;other.vy=-5.5*this.ability.kbMult;
-          // elemental status effect on spur hit
-          if(this.element==='fire')  other.burning=Math.max(other.burning,200);
-          if(this.element==='lightning'){ other.stunned=Math.max(other.stunned,55);spawnP(other.x+other.w/2,other.y+20,14,60);}
-          if(this.element==='ice')   other.frozen =Math.max(other.frozen, 110);
-          const eHue={fire:15,lightning:55,ice:200,shadow:280,earth:28};
-          spawnP(other.x+other.w/2,other.y+32,16,eHue[this.element]||18);
-          shake(8);
+          if(this.element==='fire')      other.burning=Math.max(other.burning,200);
+          if(this.element==='lightning'){other.stunned=Math.max(other.stunned,55);spawnP(other.x+other.w/2,other.y+20,14,60);}
+          if(this.element==='ice')       other.frozen =Math.max(other.frozen,110);
+          if(this.element==='poison')    other.poisoned=Math.min(240,other.poisoned+100);
+          if(this.element==='vampire'){this.hp=Math.min(this.maxHp,this.hp+Math.round(dmg*.5));spawnP(this.x+this.w/2,this.y+22,8,345);}
+          spawnP(other.x+other.w/2,other.y+32,16,eHSpur[this.element]||18);shake(8);
           if(other.hp<=0)other.dead=true;
         }
       }
@@ -282,8 +332,10 @@ class Player{
       ctx.ellipse(cx,base+3,this.grounded?40:26,7,0,0,Math.PI*2);ctx.fill();ctx.restore();
     }
     const flash=this.hitTimer>0&&Math.floor(this.hitTimer/3)%2===0;
+    const phasing=this.phaseFrames>0;
     if(!this.dead)_drawElementAura(ctx,cx,base,this);
     if(flash)ctx.globalAlpha=.3;
+    if(phasing)ctx.globalAlpha=(ctx.globalAlpha||1)*.42;
     _drawRooster(ctx,cx,base,this);
     ctx.restore();
     if(this.atkTimer>8)this._peckFx(cx,base);
@@ -292,8 +344,10 @@ class Player{
   _peckFx(cx,base){
     const f=this.facing,ex=cx+f*42,ey=base-54;
     const ec={lightning:'rgba(255,245,80,.85)',fire:'rgba(255,100,10,.85)',
-              ice:'rgba(130,220,255,.85)',shadow:'rgba(210,80,255,.85)',earth:'rgba(180,120,40,.85)'};
-    const ec2={lightning:'#fff580',fire:'#ff7700',ice:'#c0f0ff',shadow:'#cc55ff',earth:'#c09040'};
+              ice:'rgba(130,220,255,.85)',shadow:'rgba(210,80,255,.85)',earth:'rgba(180,120,40,.85)',
+              poison:'rgba(80,220,50,.85)',rage:'rgba(255,50,10,.9)',vampire:'rgba(220,30,60,.85)',ghost:'rgba(190,215,255,.85)',titan:'rgba(200,145,65,.85)'};
+    const ec2={lightning:'#fff580',fire:'#ff7700',ice:'#c0f0ff',shadow:'#cc55ff',earth:'#c09040',
+               poison:'#60e030',rage:'#ff3010',vampire:'#dd2040',ghost:'#c8d8ff',titan:'#c89040'};
     ctx.save();ctx.strokeStyle=ec[this.element]||'rgba(255,240,60,.75)';ctx.lineWidth=2.2;
     for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+Math.cos(a)*16,ey+Math.sin(a)*16);ctx.stroke();}
     ctx.globalAlpha=.38;ctx.fillStyle=ec2[this.element]||'#ffe060';ctx.beginPath();ctx.arc(ex,ey,9,0,Math.PI*2);ctx.fill();
@@ -302,9 +356,11 @@ class Player{
   _spurFx(cx,base){
     const f=this.facing,ex=cx+f*30,ey=base-18;
     const sc={lightning:'rgba(255,245,80,.75)',fire:'rgba(255,60,0,.75)',
-              ice:'rgba(100,210,255,.75)',shadow:'rgba(200,60,255,.75)',earth:'rgba(160,100,20,.75)'};
+              ice:'rgba(100,210,255,.75)',shadow:'rgba(200,60,255,.75)',earth:'rgba(160,100,20,.75)',
+              poison:'rgba(70,210,40,.75)',rage:'rgba(255,45,5,.82)',vampire:'rgba(210,20,50,.75)',ghost:'rgba(180,210,255,.75)',titan:'rgba(190,135,55,.75)'};
     const sc2={lightning:'rgba(255,255,120,.3)',fire:'rgba(255,100,0,.3)',
-               ice:'rgba(150,230,255,.3)',shadow:'rgba(180,50,255,.3)',earth:'rgba(140,90,15,.3)'};
+               ice:'rgba(150,230,255,.3)',shadow:'rgba(180,50,255,.3)',earth:'rgba(140,90,15,.3)',
+               poison:'rgba(60,200,30,.3)',rage:'rgba(255,50,0,.3)',vampire:'rgba(200,15,40,.3)',ghost:'rgba(180,205,255,.3)',titan:'rgba(175,120,45,.3)'};
     ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle=sc[this.element]||'rgba(255,80,0,.75)';ctx.lineWidth=3;
     for(let i=0;i<7;i++){const a=(i/7)*Math.PI*2;ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+Math.cos(a)*22,ey+Math.sin(a)*22);ctx.stroke();}
     ctx.globalAlpha=.28;ctx.fillStyle=sc2[this.element]||'rgba(255,119,0,.3)';ctx.beginPath();ctx.arc(ex,ey,14,0,Math.PI*2);ctx.fill();
@@ -379,6 +435,74 @@ function _drawElementAura(c,cx,gy,pl){
       c.beginPath();c.ellipse(0,0,4.5,3,0,0,Math.PI*2);c.fill();c.restore();
     }
   }
+  if(el==='poison'){
+    const gp=c.createRadialGradient(cx,gy-38,0,cx,gy-38,36);
+    gp.addColorStop(0,'rgba(60,200,30,.14)');gp.addColorStop(1,'transparent');
+    c.fillStyle=gp;c.beginPath();c.arc(cx,gy-38,36,0,Math.PI*2);c.fill();
+    for(let i=0;i<5;i++){
+      const t=((now*.005+i*.6)%1);
+      const px2=cx+Math.sin(i*1.26+now*.002)*18,py2=gy-40-t*22;
+      c.globalAlpha=(1-t)*.5;c.fillStyle=`hsl(${125+i*10},85%,${35+t*20}%)`;
+      c.beginPath();c.arc(px2,py2,2.5*(1-t*.5),0,Math.PI*2);c.fill();
+    }
+    c.globalAlpha=1;
+  }
+  if(el==='rage'){
+    const hpRatio=pl.hp/pl.maxHp,rage=1-hpRatio;
+    const gr=c.createRadialGradient(cx,gy-38,0,cx,gy-38,38+rage*12);
+    gr.addColorStop(0,`rgba(255,${Math.round(30+hpRatio*60)},0,${.08+rage*.22})`);
+    gr.addColorStop(1,'transparent');
+    c.fillStyle=gr;c.beginPath();c.arc(cx,gy-38,50,0,Math.PI*2);c.fill();
+    if(rage>.4){
+      for(let i=0;i<3;i++){
+        const a=i/3*Math.PI*2+now*.02;
+        const r2=28+rage*14+Math.sin(now*.018+i)*4;
+        c.strokeStyle=`rgba(255,60,0,${rage*.45+Math.sin(now*.02+i)*.15})`;c.lineWidth=1.8;
+        c.beginPath();c.arc(cx,gy-38,r2,a,a+Math.PI*.8);c.stroke();
+      }
+    }
+  }
+  if(el==='vampire'){
+    const gv=c.createRadialGradient(cx,gy-40,0,cx,gy-40,34);
+    gv.addColorStop(0,'rgba(180,0,30,.14)');gv.addColorStop(1,'transparent');
+    c.fillStyle=gv;c.beginPath();c.arc(cx,gy-40,34,0,Math.PI*2);c.fill();
+    for(let i=0;i<4;i++){
+      const a=i/4*Math.PI*2-now*.01;
+      const r2=28+Math.sin(now*.003+i)*5;
+      const ox=cx+Math.cos(a)*r2,oy=gy-40+Math.sin(a)*.35*r2;
+      c.fillStyle=`rgba(220,0,40,${.4+Math.sin(now*.008+i)*.2})`;
+      c.beginPath();c.arc(ox,oy,3.5,0,Math.PI*2);c.fill();
+    }
+  }
+  if(el==='ghost'){
+    for(let i=0;i<4;i++){
+      const phase=((now*.0012+i*.25)%1);
+      const r2=14+phase*32;
+      c.strokeStyle=`rgba(200,225,255,${(1-phase)*.45})`;c.lineWidth=1.8;
+      c.beginPath();c.arc(cx,gy-40,r2,0,Math.PI*2);c.stroke();
+    }
+    const gg=c.createRadialGradient(cx,gy-40,0,cx,gy-40,32);
+    gg.addColorStop(0,'rgba(180,210,255,.12)');gg.addColorStop(1,'transparent');
+    c.fillStyle=gg;c.beginPath();c.arc(cx,gy-40,32,0,Math.PI*2);c.fill();
+    if(pl.phaseFrames>0){
+      const pa=(pl.phaseFrames/42)*.65;
+      c.strokeStyle=`rgba(200,230,255,${pa})`;c.lineWidth=3;
+      c.beginPath();c.arc(cx,gy-36,36,0,Math.PI*2);c.stroke();
+    }
+  }
+  if(el==='titan'){
+    for(let i=0;i<5;i++){
+      const a=i/5*Math.PI*2+now*.0007;
+      const r2=34+Math.sin(now*.002+i)*6;
+      const tx=cx+Math.cos(a)*r2,ty=gy-44+Math.sin(a)*.4*r2;
+      c.fillStyle=`rgba(${110+i*8},${60+i*6},18,${.5+Math.sin(now*.003+i)*.2})`;
+      c.save();c.translate(tx,ty);c.rotate(a+now*.0009);
+      c.beginPath();c.ellipse(0,0,5.5,3.5,0,0,Math.PI*2);c.fill();c.restore();
+    }
+    const gt=c.createRadialGradient(cx,gy-38,0,cx,gy-38,40);
+    gt.addColorStop(0,'rgba(140,80,20,.10)');gt.addColorStop(1,'transparent');
+    c.fillStyle=gt;c.beginPath();c.arc(cx,gy-38,40,0,Math.PI*2);c.fill();
+  }
   // status overlays
   c.globalAlpha=1;
   if(pl.burning>0){
@@ -401,6 +525,12 @@ function _drawElementAura(c,cx,gy,pl){
       c.font='bold 13px sans-serif';c.textAlign='center';c.textBaseline='middle';
       c.fillText('⚡',cx+Math.cos(a)*24,gy-76+Math.sin(a)*5);
     }
+  }
+  if(pl.poisoned>0){
+    const po=Math.min(.55,pl.poisoned/90);
+    const pov=c.createRadialGradient(cx,gy-36,4,cx,gy-36,30);
+    pov.addColorStop(0,`rgba(60,200,30,${po})`);pov.addColorStop(1,'transparent');
+    c.fillStyle=pov;c.beginPath();c.arc(cx,gy-36,30,0,Math.PI*2);c.fill();
   }
   c.restore();
 }
@@ -989,8 +1119,10 @@ function _drawSelectPanel(panelX,idx,confirmed,facing,playerLabel,ctrlHint){
   ctx.fillStyle=abilCol;ctx.fillText('✦ '+r.abilityName,cx,144);
 
   // element badge
-  const elLabel={lightning:'⚡ TROVÃO',fire:'🔥 FOGO',ice:'❄ GELO',shadow:'🌑 SOMBRA',earth:'🪨 TERRA'};
-  const elCol={lightning:'rgba(255,245,80,1)',fire:'rgba(255,100,20,1)',ice:'rgba(130,220,255,1)',shadow:'rgba(200,80,255,1)',earth:'rgba(180,130,60,1)'};
+  const elLabel={lightning:'⚡ TROVÃO',fire:'🔥 FOGO',ice:'❄ GELO',shadow:'🌑 SOMBRA',earth:'🪨 TERRA',
+                 poison:'☠ VENENO',rage:'💢 FÚRIA',vampire:'🩸 VAMPIRO',ghost:'👻 ESPECTRO',titan:'🏔 TITÃ'};
+  const elCol={lightning:'rgba(255,245,80,1)',fire:'rgba(255,100,20,1)',ice:'rgba(130,220,255,1)',shadow:'rgba(200,80,255,1)',earth:'rgba(180,130,60,1)',
+               poison:'rgba(80,220,60,1)',rage:'rgba(255,55,15,1)',vampire:'rgba(220,40,80,1)',ghost:'rgba(180,210,255,1)',titan:'rgba(200,150,80,1)'};
   ctx.font='bold 12px monospace';ctx.textAlign='center';
   ctx.fillStyle=elCol[r.element]||'rgba(200,180,140,.9)';
   ctx.fillText(elLabel[r.element]||r.element,cx,158);
