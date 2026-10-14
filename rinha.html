@@ -7,6 +7,7 @@
   canvas{display:block;width:100%;aspect-ratio:16/9;border:3px solid #5a3500;box-shadow:0 0 40px rgba(0,100,0,.35),0 0 80px rgba(0,40,0,.25);}
   #hint{color:#3a5a20;font-family:monospace;font-size:9px;text-align:center;letter-spacing:.5px;margin-top:2px;}
   #ctrl{position:absolute;bottom:0;left:0;width:100%;display:flex;justify-content:space-between;align-items:flex-end;padding:0 5px 5px;box-sizing:border-box;pointer-events:none;z-index:10;}
+  @media(pointer:fine){#ctrl{display:none;}}
   .pctrl{display:flex;flex-direction:column;gap:4px;pointer-events:all;}
   .pctrl-row{display:flex;gap:4px;align-items:center;}
   .pctrl-r .pctrl-row{justify-content:flex-end;}
