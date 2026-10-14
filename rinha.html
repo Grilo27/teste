@@ -2,12 +2,60 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap">
 <style>
   :root{--bg:#1a3a08;color-scheme:dark;}
-  html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);}
-  canvas{display:block;max-width:100%;height:auto;border:3px solid #5a3500;box-shadow:0 0 40px rgba(0,100,0,.35),0 0 80px rgba(0,40,0,.25);}
-  #hint{color:#3a5a20;font-family:monospace;font-size:10px;margin-top:5px;text-align:center;letter-spacing:.5px;}
+  html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:0;margin:0;}
+  #wrap{position:relative;width:100%;max-width:960px;display:flex;flex-direction:column;align-items:center;}
+  canvas{display:block;width:100%;height:auto;border:3px solid #5a3500;box-shadow:0 0 40px rgba(0,100,0,.35),0 0 80px rgba(0,40,0,.25);}
+  #hint{color:#3a5a20;font-family:monospace;font-size:10px;margin-top:3px;text-align:center;letter-spacing:.5px;}
+  #ctrl{width:100%;display:flex;justify-content:space-between;align-items:flex-end;padding:4px 6px;box-sizing:border-box;}
+  .pctrl{display:flex;gap:5px;align-items:flex-end;}
+  .tb{
+    width:clamp(38px,8.5vw,60px);height:clamp(38px,8.5vw,60px);
+    border-radius:50%;border:none;cursor:pointer;
+    font-size:clamp(14px,2.8vw,20px);font-weight:bold;line-height:1;
+    user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;
+    transition:filter .08s,transform .08s;
+  }
+  .tb-move{background:rgba(40,90,20,.88);color:#c0f080;border:2px solid rgba(100,180,50,.65);}
+  .tb-jump{background:rgba(20,65,150,.88);color:#90d8ff;border:2px solid rgba(60,140,245,.65);}
+  .tb-atk {background:rgba(155,58,12,.88);color:#ffb870;border:2px solid rgba(235,115,35,.65);}
+  .tb-spur{background:rgba(120,12,120,.88);color:#ffaaee;border:2px solid rgba(215,45,215,.65);}
+  .tb:active{filter:brightness(1.6);transform:scale(.9);}
+  .vgap{min-width:clamp(5px,1.8vw,16px);}
+  #rot{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);color:#afe080;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    z-index:999;text-align:center;padding:24px;font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(18px,5vw,32px);}
+  #rot svg{width:56px;opacity:.75;animation:rot-anim 1.8s ease-in-out infinite;}
+  @keyframes rot-anim{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
+  @media(orientation:portrait){#rot{display:flex;}}
 </style>
-<canvas id="game"></canvas>
-<div id="hint">P1: W/A/D | F=bicada | G=esporão &nbsp;·&nbsp; P2: ↑/←/→ | Enter=bicada | Bksp=esporão</div>
+<div id="rot">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#afe080" stroke-width="1.4"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 21h6"/><circle cx="12" cy="18.5" r=".8" fill="#afe080"/></svg>
+  GIRE O CELULAR
+  <span style="font-size:.58em;color:#6a9050;display:block">Landscape para jogar</span>
+</div>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="hint">P1: W/A/D | F=bicada | G=esporão &nbsp;·&nbsp; P2: ↑/←/→ | Enter=bicada | Bksp=esporão</div>
+  <div id="ctrl">
+    <div class="pctrl">
+      <button class="tb tb-move" id="p1l">◀</button>
+      <button class="tb tb-move" id="p1r">▶</button>
+      <span class="vgap"></span>
+      <button class="tb tb-jump" id="p1j">▲</button>
+      <button class="tb tb-atk"  id="p1a">⚔</button>
+      <button class="tb tb-spur" id="p1s">⚡</button>
+    </div>
+    <div class="pctrl">
+      <button class="tb tb-spur" id="p2s">⚡</button>
+      <button class="tb tb-atk"  id="p2a">⚔</button>
+      <button class="tb tb-jump" id="p2j">▲</button>
+      <span class="vgap"></span>
+      <button class="tb tb-move" id="p2l">◀</button>
+      <button class="tb tb-move" id="p2r">▶</button>
+    </div>
+  </div>
+</div>
 <script>
 const W=960,H=540;
 const canvas=document.getElementById('game');
@@ -89,6 +137,22 @@ const K={};
 const KQ=[];
 window.addEventListener('keydown',e=>{K[e.code]=true;KQ.push(e.code);e.preventDefault();});
 window.addEventListener('keyup',  e=>{K[e.code]=false;});
+
+function tbPress(code,down){K[code]=down;if(down)KQ.push(code);}
+(()=>{
+  const map={p1l:'KeyA',p1r:'KeyD',p1j:'KeyW',p1a:'KeyF',p1s:'KeyG',
+             p2l:'ArrowLeft',p2r:'ArrowRight',p2j:'ArrowUp',p2a:'Enter',p2s:'Backspace'};
+  for(const[id,code]of Object.entries(map)){
+    const el=document.getElementById(id);if(!el)continue;
+    const on=()=>tbPress(code,true),off=()=>tbPress(code,false);
+    el.addEventListener('touchstart',e=>{e.preventDefault();on();},{passive:false});
+    el.addEventListener('touchend',  e=>{e.preventDefault();off();},{passive:false});
+    el.addEventListener('touchcancel',off);
+    el.addEventListener('mousedown',on);
+    el.addEventListener('mouseup',off);
+    el.addEventListener('mouseleave',off);
+  }
+})();
 
 /* ── hit-test ────────────────────────────────────────────────────── */
 function rectsOvlp(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
