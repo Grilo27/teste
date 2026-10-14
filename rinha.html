@@ -19,6 +19,7 @@
   .tb-jump{background:rgba(20,65,150,.88);color:#90d8ff;border:2px solid rgba(60,140,245,.65);}
   .tb-atk {background:rgba(155,58,12,.88);color:#ffb870;border:2px solid rgba(235,115,35,.65);}
   .tb-spur{background:rgba(120,12,120,.88);color:#ffaaee;border:2px solid rgba(215,45,215,.65);}
+  .tb-spec{background:rgba(70,30,150,.88);color:#e8c8ff;border:2px solid rgba(180,100,255,.65);}
   .tb:active{filter:brightness(1.6);transform:scale(.9);}
   .vgap{min-width:clamp(5px,1.8vw,16px);}
   #rot{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);color:#afe080;
@@ -45,8 +46,10 @@
       <button class="tb tb-jump" id="p1j">▲</button>
       <button class="tb tb-atk"  id="p1a">⚔</button>
       <button class="tb tb-spur" id="p1s">⚡</button>
+      <button class="tb tb-spec" id="p1x">★</button>
     </div>
     <div class="pctrl">
+      <button class="tb tb-spec" id="p2x">★</button>
       <button class="tb tb-spur" id="p2s">⚡</button>
       <button class="tb tb-atk"  id="p2a">⚔</button>
       <button class="tb tb-jump" id="p2j">▲</button>
@@ -73,55 +76,55 @@ const PLATFORMS=[
 /* ── ROSTERS ─────────────────────────────────────────────────────── */
 const ROSTERS=[
   {name:'TROVÃO', feathers:55, comb:185, element:'lightning',
-   abilityName:'DESCARGA ELÉTRICA',
-   abilityDesc:['Esporão eletrocuta.','Velocidade relâmpago.'],
+   abilityName:'DESCARGA ELÉTRICA',abilityDesc:['Esporão eletrocuta.','Velocidade relâmpago.'],
+   specialName:'RAIO TRIPLO',specialDesc:'3 raios instantâneos + atordoa',
    stats:{vel:9,atk:7,def:5},
-   ability:{speed:7.5,atkDmg:9,atkCD:20,spurDmg:26,spurCD:58,kbMult:1.3,defMult:1,dblJump:false}},
+   ability:{speed:7.5,atkDmg:9,atkCD:20,spurDmg:26,spurCD:58,kbMult:1.3,defMult:1,dblJump:false,specialCD:150}},
   {name:'BRASA',  feathers:15, comb:0,   element:'fire',
-   abilityName:'INCÊNDIO VIVO',
-   abilityDesc:['Bicada causa queimadura.','Ataque devastador.'],
+   abilityName:'INCÊNDIO VIVO',abilityDesc:['Bicada causa queimadura.','Ataque devastador.'],
+   specialName:'EXPLOSÃO DE FOGO',specialDesc:'Explosão que queima por muito tempo',
    stats:{vel:6,atk:10,def:4},
-   ability:{speed:5.5,atkDmg:15,atkCD:28,spurDmg:24,spurCD:68,kbMult:1.4,defMult:1,dblJump:false}},
+   ability:{speed:5.5,atkDmg:15,atkCD:28,spurDmg:24,spurCD:68,kbMult:1.4,defMult:1,dblJump:false,specialCD:170}},
   {name:'GÉLIDO', feathers:200,comb:210, element:'ice',
-   abilityName:'CONGELAMENTO',
-   abilityDesc:['Esporão paralisa inimigo.','Resistência glacial.'],
+   abilityName:'CONGELAMENTO',abilityDesc:['Esporão paralisa inimigo.','Resistência glacial.'],
+   specialName:'AVALANCHE GLACIAL',specialDesc:'Congela inimigo por tempo máximo',
    stats:{vel:4,atk:7,def:9},
-   ability:{speed:4,atkDmg:10,atkCD:38,spurDmg:26,spurCD:78,kbMult:0.8,defMult:0.78,dblJump:false}},
+   ability:{speed:4,atkDmg:10,atkCD:38,spurDmg:26,spurCD:78,kbMult:0.8,defMult:0.78,dblJump:false,specialCD:160}},
   {name:'SOMBRIO',feathers:278,comb:285, element:'shadow',
-   abilityName:'FANTASMA NEGRO',
-   abilityDesc:['Duplo salto no ar.','Aura sombria esquiva.'],
+   abilityName:'FANTASMA NEGRO',abilityDesc:['Duplo salto no ar.','Aura sombria esquiva.'],
+   specialName:'TELETRANSPORTE',specialDesc:'Teleporta atrás do inimigo e ataca',
    stats:{vel:7,atk:7,def:7},
-   ability:{speed:6.5,atkDmg:10,atkCD:26,spurDmg:22,spurCD:62,kbMult:1.1,defMult:0.88,dblJump:true}},
+   ability:{speed:6.5,atkDmg:10,atkCD:26,spurDmg:22,spurCD:62,kbMult:1.1,defMult:0.88,dblJump:true,specialCD:140}},
   {name:'PEDRA',  feathers:95, comb:30,  element:'earth',
-   abilityName:'ARMADURA DE ROCHA',
-   abilityDesc:['Super armadura.','Knockback devastador.'],
+   abilityName:'ARMADURA DE ROCHA',abilityDesc:['Super armadura.','Knockback devastador.'],
+   specialName:'TERREMOTO TOTAL',specialDesc:'AOE devastador em toda a arena',
    stats:{vel:3,atk:10,def:10},
-   ability:{speed:3,atkDmg:14,atkCD:48,spurDmg:38,spurCD:95,kbMult:2.4,defMult:0.68,dblJump:false}},
+   ability:{speed:3,atkDmg:14,atkCD:48,spurDmg:38,spurCD:95,kbMult:2.4,defMult:0.68,dblJump:false,specialCD:200}},
   {name:'VENENOSO',feathers:140,comb:285,element:'poison',
-   abilityName:'VENENO MORTAL',
-   abilityDesc:['Bicada empilha veneno.','Até 3x DoT acumulado.'],
+   abilityName:'VENENO MORTAL',abilityDesc:['Bicada empilha veneno.','Até 3x DoT acumulado.'],
+   specialName:'NUVEM TÓXICA',specialDesc:'Maximiza veneno imediatamente',
    stats:{vel:6,atk:8,def:6},
-   ability:{speed:5.5,atkDmg:11,atkCD:24,spurDmg:20,spurCD:65,kbMult:1,defMult:1,dblJump:false}},
+   ability:{speed:5.5,atkDmg:11,atkCD:24,spurDmg:20,spurCD:65,kbMult:1,defMult:1,dblJump:false,specialCD:155}},
   {name:'BERSERKER',feathers:5,comb:0,  element:'rage',
-   abilityName:'FÚRIA CRESCENTE',
-   abilityDesc:['Ataque escala com HP baixo.','Imparável no limite.'],
+   abilityName:'FÚRIA CRESCENTE',abilityDesc:['Ataque escala com HP baixo.','Imparável no limite.'],
+   specialName:'FRENESI TOTAL',specialDesc:'8s de fúria máxima imparável',
    stats:{vel:7,atk:8,def:4},
-   ability:{speed:5,atkDmg:10,atkCD:28,spurDmg:22,spurCD:70,kbMult:1.3,defMult:1.1,dblJump:false}},
+   ability:{speed:5,atkDmg:10,atkCD:28,spurDmg:22,spurCD:70,kbMult:1.3,defMult:1.1,dblJump:false,specialCD:240}},
   {name:'VAMPIRO', feathers:345,comb:350,element:'vampire',
-   abilityName:'ROUBO DE VIDA',
-   abilityDesc:['Bicada rouba HP inimigo.','Se cura ao atacar.'],
+   abilityName:'ROUBO DE VIDA',abilityDesc:['Bicada rouba HP inimigo.','Se cura ao atacar.'],
+   specialName:'DRENAGEM VITAL',specialDesc:'Drena 35HP diretamente do inimigo',
    stats:{vel:5,atk:8,def:6},
-   ability:{speed:5,atkDmg:12,atkCD:30,spurDmg:22,spurCD:72,kbMult:1.1,defMult:1,dblJump:false}},
+   ability:{speed:5,atkDmg:12,atkCD:30,spurDmg:22,spurCD:72,kbMult:1.1,defMult:1,dblJump:false,specialCD:165}},
   {name:'FANTASMA',feathers:220,comb:235,element:'ghost',
-   abilityName:'TRAVESSIA ESPECTRAL',
-   abilityDesc:['Esporão: fica invencível.','Duplo salto espectral.'],
+   abilityName:'TRAVESSIA ESPECTRAL',abilityDesc:['Esporão: fica invencível.','Duplo salto espectral.'],
+   specialName:'FASE TOTAL',specialDesc:'3s de invencibilidade completa',
    stats:{vel:8,atk:6,def:5},
-   ability:{speed:6.5,atkDmg:9,atkCD:26,spurDmg:18,spurCD:60,kbMult:0.9,defMult:0.92,dblJump:true}},
+   ability:{speed:6.5,atkDmg:9,atkCD:26,spurDmg:18,spurCD:60,kbMult:0.9,defMult:0.92,dblJump:true,specialCD:180}},
   {name:'TITÃ',    feathers:35, comb:25, element:'titan',
-   abilityName:'TERREMOTO',
-   abilityDesc:['Queda forte = tremor AOE.','Knockback devastador.'],
+   abilityName:'TERREMOTO',abilityDesc:['Queda forte = tremor AOE.','Knockback devastador.'],
+   specialName:'SLAM SÍSMICO',specialDesc:'Salta alto e cai com força máxima',
    stats:{vel:3,atk:9,def:9},
-   ability:{speed:3,atkDmg:13,atkCD:45,spurDmg:35,spurCD:90,kbMult:2,defMult:0.72,dblJump:false}},
+   ability:{speed:3,atkDmg:13,atkCD:45,spurDmg:35,spurCD:90,kbMult:2,defMult:0.72,dblJump:false,specialCD:220}},
 ];
 
 /* ── util ────────────────────────────────────────────────────────── */
@@ -165,8 +168,8 @@ window.addEventListener('keyup',  e=>{K[e.code]=false;});
 
 function tbPress(code,down){K[code]=down;if(down)KQ.push(code);}
 (()=>{
-  const map={p1l:'KeyA',p1r:'KeyD',p1j:'KeyW',p1a:'KeyF',p1s:'KeyG',
-             p2l:'ArrowLeft',p2r:'ArrowRight',p2j:'ArrowUp',p2a:'Enter',p2s:'Backspace'};
+  const map={p1l:'KeyA',p1r:'KeyD',p1j:'KeyW',p1a:'KeyF',p1s:'KeyG',p1x:'KeyH',
+             p2l:'ArrowLeft',p2r:'ArrowRight',p2j:'ArrowUp',p2a:'Enter',p2s:'Backspace',p2x:'Slash'};
   for(const[id,code]of Object.entries(map)){
     const el=document.getElementById(id);if(!el)continue;
     const on=()=>tbPress(code,true),off=()=>tbPress(code,false);
@@ -194,6 +197,7 @@ class Player{
       dead:false,deathAnim:0,animT:0,wingFlap:0,state:'idle',
       ability:c.ability,
       burning:0,frozen:0,stunned:0,poisoned:0,phaseFrames:0,
+      specialCD:0,frenesiTimer:0,slamming:false,
     });
   }
   reset(){
@@ -202,6 +206,7 @@ class Player{
     this.atkCD=this.spurCD=this.atkTimer=this.spurTimer=this.hitTimer=0;
     this.dead=false;this.deathAnim=0;this.state='idle';this.jumpCount=0;
     this.burning=this.frozen=this.stunned=this.poisoned=this.phaseFrames=0;
+    this.specialCD=this.frenesiTimer=0;this.slamming=false;
   }
   update(other){
     if(this.dead){this.deathAnim=Math.min(this.deathAnim+.05,1);return;}
@@ -227,11 +232,14 @@ class Player{
     if(this.phaseFrames>0)this.phaseFrames--;
 
     const L=K[this.ctrl.left],R=K[this.ctrl.right],
-          J=K[this.ctrl.jump],A=K[this.ctrl.atk],S=K[this.ctrl.spur];
+          J=K[this.ctrl.jump],A=K[this.ctrl.atk],S=K[this.ctrl.spur],SP=K[this.ctrl.special];
+    if(this.specialCD>0)this.specialCD--;
+    if(this.frenesiTimer>0)this.frenesiTimer--;
     const frozenMult=this.frozen>0?0.32:1;
     const stunnedBlock=this.stunned>0;
-    const rageBoost=this.element==='rage'?1+(1-this.hp/this.maxHp)*1.8:1;
-    const rageSpd=this.element==='rage'?1+(1-this.hp/this.maxHp)*.6:1;
+    const frenesi=this.element==='rage'&&this.frenesiTimer>0;
+    const rageBoost=this.element==='rage'?(frenesi?2.5:1+(1-this.hp/this.maxHp)*1.8):1;
+    const rageSpd=this.element==='rage'?(frenesi?2.2:1+(1-this.hp/this.maxHp)*.6):1;
     const spd=this.ability.speed*frozenMult*rageSpd;
 
     if(!L&&!R&&other)this.facing=other.x>this.x?1:-1;
@@ -252,6 +260,10 @@ class Player{
       this.spurTimer=20;this.spurCD=this.ability.spurCD;
       if(this.element==='ghost')this.phaseFrames=42;
     }
+    if(SP&&this.specialCD===0&&!stunnedBlock){
+      this.specialCD=this.ability.specialCD;
+      this._triggerSpecial(other);
+    }
 
     const wasGrounded=this.grounded,prevFallVy=this.vy;
     this.vy+=.62;this.x+=this.vx;this.y+=this.vy;
@@ -264,14 +276,17 @@ class Player{
     }
     // titan earthquake on hard landing
     if(!wasGrounded&&this.grounded&&prevFallVy>9&&this.element==='titan'&&other&&!other.dead){
+      const slam=this.slamming;
       const dist=Math.abs((this.x+this.w/2)-(other.x+other.w/2));
-      if(dist<140){
-        const dmg=Math.round(20*other.ability.defMult);
-        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=38;
-        other.vx=this.facing*6*this.ability.kbMult;other.vy=-4.5;
-        spawnP(this.x+this.w/2,this.y+this.h,20,30);shake(7);
+      const range=slam?W:140;
+      if(dist<range){
+        const dmg=Math.round((slam?50:20)*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=48;
+        other.vx=this.facing*( slam?12:6)*this.ability.kbMult;other.vy=-(slam?10:4.5);
+        spawnP(this.x+this.w/2,this.y+this.h,slam?36:20,30);shake(slam?14:7);
         if(other.hp<=0)other.dead=true;
       }
+      this.slamming=false;
     }
     this.x=clamp(this.x,0,W-this.w);
     if(this.y>H+60){this.y=GROUND_Y-this.h;this.vy=0;}
@@ -365,6 +380,100 @@ class Player{
     for(let i=0;i<7;i++){const a=(i/7)*Math.PI*2;ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+Math.cos(a)*22,ey+Math.sin(a)*22);ctx.stroke();}
     ctx.globalAlpha=.28;ctx.fillStyle=sc2[this.element]||'rgba(255,119,0,.3)';ctx.beginPath();ctx.arc(ex,ey,14,0,Math.PI*2);ctx.fill();
     ctx.restore();
+  }
+  _triggerSpecial(other){
+    const f=this.facing,el=this.element;
+    if(el==='lightning'){
+      // RAIO TRIPLO: 3 instant strikes
+      for(let i=0;i<3;i++){
+        if(other&&!other.dead){
+          const dmg=Math.round(15*other.ability.defMult);
+          other.hp=Math.max(0,other.hp-dmg);
+          other.stunned=Math.max(other.stunned,36);other.hitTimer=Math.max(other.hitTimer,22);
+          spawnP(other.x+other.w/2,other.y+20,8,58);
+        }
+      }
+      if(other&&other.hp<=0)other.dead=true;
+      shake(7);
+    } else if(el==='fire'){
+      // EXPLOSÃO: massive burn + damage
+      if(other&&!other.dead){
+        other.burning=250;
+        const dmg=Math.round(26*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=30;
+        other.vx=f*5*this.ability.kbMult;other.vy=-3.5;
+        spawnP(other.x+other.w/2,other.y+22,28,16);
+        if(other.hp<=0)other.dead=true;
+      }
+      spawnP(this.x+this.w/2,this.y+20,14,20);shake(7);
+    } else if(el==='ice'){
+      // AVALANCHE: max freeze + dmg
+      if(other&&!other.dead){
+        other.frozen=200;
+        const dmg=Math.round(22*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=30;
+        spawnP(other.x+other.w/2,other.y+22,20,200);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(5);
+    } else if(el==='shadow'){
+      // TELETRANSPORTE: teleport behind + strike
+      if(other&&!other.dead){
+        this.x=clamp(other.x-f*(other.w+10),0,W-this.w);
+        const dmg=Math.round(30*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=38;
+        other.vx=f*7*this.ability.kbMult;other.vy=-5;
+        spawnP(this.x+this.w/2,this.y+22,22,282);
+        if(other.hp<=0)other.dead=true;
+      }
+      spawnP(this.x+this.w/2,this.y+22,12,285);shake(5);
+    } else if(el==='earth'){
+      // TERREMOTO TOTAL: full-screen AOE
+      if(other&&!other.dead){
+        const dmg=Math.round(44*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=52;
+        other.vx=f*10*this.ability.kbMult;other.vy=-9;
+        for(let i=0;i<5;i++)spawnP(Math.random()*W,GROUND_Y-4,10,32);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(16);
+    } else if(el==='poison'){
+      // NUVEM TÓXICA: max poison stack
+      if(other&&!other.dead){
+        other.poisoned=300;
+        const dmg=Math.round(14*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=22;
+        spawnP(other.x+other.w/2,other.y+22,24,130);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(3);
+    } else if(el==='rage'){
+      // FRENESI TOTAL: 8s max rage
+      this.frenesiTimer=480;
+      for(let i=0;i<32;i++)spawnP(this.x+this.w/2,this.y+30,1,Math.random()*40);
+      shake(10);
+    } else if(el==='vampire'){
+      // DRENAGEM: drain 35 HP
+      if(other&&!other.dead){
+        const drain=Math.round(35*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-drain);other.hitTimer=30;
+        this.hp=Math.min(this.maxHp,this.hp+drain);
+        spawnP(this.x+this.w/2,this.y+22,18,345);
+        spawnP(other.x+other.w/2,other.y+22,12,350);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(4);
+    } else if(el==='ghost'){
+      // FASE TOTAL: teleport + 3s full invincibility
+      if(other&&!other.dead)this.x=clamp(other.x-f*(other.w+10),0,W-this.w);
+      this.phaseFrames=190;
+      spawnP(this.x+this.w/2,this.y+22,22,232);shake(3);
+    } else if(el==='titan'){
+      // SLAM SÍSMICO: launch up then crash
+      this.y=Math.min(this.y,GROUND_Y-240);
+      this.vy=24;this.grounded=false;this.slamming=true;
+      spawnP(this.x+this.w/2,GROUND_Y-6,18,32);shake(10);
+    }
   }
 }
 
@@ -595,39 +704,49 @@ function _drawRooster(c,cx,gy,pl){
   c.fillStyle=hsl(28,42,24);c.beginPath();c.arc(lbKx,lbKy,5.5,0,Math.PI*2);c.fill();
   _drawFoot(c,lbAx,lbAy,f);
 
-  // ── BODY (ellipse + feather scale + specular + iridescence) ──
-  const bf=c.createRadialGradient(bx+f*12,by-18,3,bx,by,40);
-  bf.addColorStop(0,hsl(H,80,74));bf.addColorStop(.25,hsl(H,74,56));
-  bf.addColorStop(.6,hsl(H,64,36));bf.addColorStop(1,hsl(H,54,18));
-  c.fillStyle=bf;c.beginPath();c.ellipse(bx,by,32,40,.07*f,0,Math.PI*2);c.fill();
-  // feather scale shapes
-  for(let row=0;row<6;row++){
-    for(let col=-2;col<=3;col++){
-      const fx=bx+f*(col*8.5-5),fy=by-26+row*13;
-      if(Math.hypot((fx-bx)/32,(fy-by)/40)>.88)continue;
-      const d=Math.hypot((fx-bx)/32,(fy-by)/40);
-      c.fillStyle=hsl(H+col*3,62,22+row*2.5-d*9);
+  // ── BODY: bezier silhouette (chest puffed, flat back, proper rooster shape) ──
+  function bodyPath(){
+    c.beginPath();
+    c.moveTo(bx-f*20, by+14);              // rump
+    c.bezierCurveTo(bx-f*16,by-22, bx+f*4,by-34, bx+f*12,by-32);  // back → neck base
+    c.bezierCurveTo(bx+f*30,by-24, bx+f*34,by+8,  bx+f*26,by+24);  // chest bulge
+    c.bezierCurveTo(bx+f*14,by+36, bx-f*6, by+34, bx-f*20,by+14);  // belly → rump
+    c.closePath();
+  }
+  const bf=c.createRadialGradient(bx+f*16,by-12,2,bx+f*4,by,42);
+  bf.addColorStop(0,hsl(H,82,76));bf.addColorStop(.22,hsl(H,76,58));
+  bf.addColorStop(.58,hsl(H,66,36));bf.addColorStop(1,hsl(H,54,16));
+  c.fillStyle=bf;bodyPath();c.fill();
+  // feather scales drawn inside body silhouette
+  c.save();bodyPath();c.clip();
+  for(let row=0;row<7;row++){
+    for(let col=-3;col<=4;col++){
+      const fx=bx+f*(col*7.5-2),fy=by-28+row*11;
+      const nx=(fx-bx)/34,ny=(fy-by)/40;
+      if(nx*nx+ny*ny>0.86)continue;
+      const d=Math.sqrt(nx*nx+ny*ny);
+      c.fillStyle=hsl(H+col*2,64,20+row*2-d*8);
       c.beginPath();
-      c.moveTo(fx-f*6,fy);
-      c.quadraticCurveTo(fx+f*.5,fy-7.5,fx+f*7,fy);
-      c.quadraticCurveTo(fx+f*5,fy+6,fx-f*5,fy+6);
+      c.moveTo(fx-f*5.5,fy);
+      c.quadraticCurveTo(fx+f*.5,fy-6.5,fx+f*6.5,fy);
+      c.quadraticCurveTo(fx+f*4.5,fy+5.5,fx-f*4.5,fy+5.5);
       c.closePath();c.fill();
     }
   }
-  c.strokeStyle=hsl(H,36,13);c.lineWidth=1.8;
-  c.beginPath();c.ellipse(bx,by,32,40,.07*f,0,Math.PI*2);c.stroke();
-  // specular highlight
-  const bh2=c.createRadialGradient(bx+f*14,by-18,1,bx+f*8,by-6,26);
-  bh2.addColorStop(0,`hsla(${H+8},90%,84%,.62)`);bh2.addColorStop(1,`hsla(${H},76%,52%,0)`);
-  c.fillStyle=bh2;c.beginPath();c.ellipse(bx+f*8,by-6,20,26,0,0,Math.PI*2);c.fill();
-  // iridescent sweep
+  c.restore();
+  c.strokeStyle=hsl(H,38,12);c.lineWidth=2;bodyPath();c.stroke();
+  // specular highlight (chest area)
+  const bh2=c.createRadialGradient(bx+f*18,by-10,1,bx+f*10,by-2,24);
+  bh2.addColorStop(0,`hsla(${H+8},92%,86%,.68)`);bh2.addColorStop(1,`hsla(${H},78%,54%,0)`);
+  c.fillStyle=bh2;c.beginPath();c.ellipse(bx+f*10,by-2,20,24,0,0,Math.PI*2);c.fill();
+  // iridescent animated sheen
   const iShift=Math.sin(now*.0016)*40;
-  const ir=c.createLinearGradient(bx-f*28,by-36,bx+f*24,by+30);
+  const ir=c.createLinearGradient(bx-f*30,by-36,bx+f*26,by+32);
   ir.addColorStop(0,`hsla(${H+iShift},95%,82%,0)`);
-  ir.addColorStop(.35,`hsla(${H+iShift+55},100%,80%,.24)`);
-  ir.addColorStop(.72,`hsla(${H+iShift+110},90%,74%,.13)`);
+  ir.addColorStop(.35,`hsla(${H+iShift+55},100%,80%,.26)`);
+  ir.addColorStop(.72,`hsla(${H+iShift+110},90%,74%,.14)`);
   ir.addColorStop(1,`hsla(${H+iShift},95%,82%,0)`);
-  c.fillStyle=ir;c.beginPath();c.ellipse(bx,by,32,40,.07*f,0,Math.PI*2);c.fill();
+  c.fillStyle=ir;bodyPath();c.fill();
 
   // ── SADDLE FEATHERS (long flowing from lower-back to tail) ───
   for(let i=0;i<7;i++){
@@ -678,11 +797,30 @@ function _drawRooster(c,cx,gy,pl){
     c.fill();
     c.strokeStyle=hsl(H+4,50,22);c.lineWidth=.42;c.stroke();
   }
-  // neck body
-  c.strokeStyle=hsl(H,72,40);c.lineWidth=13;c.lineCap='round';
-  c.beginPath();c.moveTo(bx+f*10,by-14);c.quadraticCurveTo(bx+f*22,by-30,hx-f*6,hy+16);c.stroke();
-  c.strokeStyle=hsl(H+6,70,56);c.lineWidth=7;
-  c.beginPath();c.moveTo(bx+f*11,by-15);c.quadraticCurveTo(bx+f*23,by-31,hx-f*4,hy+15);c.stroke();
+  // ── NECK (filled bezier silhouette) ──────────────────────────
+  const ng=c.createLinearGradient(bx+f*6,by-10,bx+f*20,by-10);
+  ng.addColorStop(0,hsl(H,64,28));ng.addColorStop(.5,hsl(H,72,46));ng.addColorStop(1,hsl(H,60,26));
+  c.fillStyle=ng;
+  c.beginPath();
+  c.moveTo(bx+f*6,by-10);
+  c.quadraticCurveTo(bx+f*12,by-40,hx-f*10,hy+14);
+  c.lineTo(hx+f*2,hy+14);
+  c.quadraticCurveTo(bx+f*24,by-38,bx+f*18,by-10);
+  c.closePath();c.fill();
+  c.fillStyle=`hsla(${H+8},82%,68%,.36)`;
+  c.beginPath();
+  c.moveTo(bx+f*9,by-12);
+  c.quadraticCurveTo(bx+f*14,by-40,hx-f*7,hy+15);
+  c.lineTo(hx-f*3,hy+15);
+  c.quadraticCurveTo(bx+f*18,by-38,bx+f*12,by-12);
+  c.closePath();c.fill();
+  c.strokeStyle=hsl(H,38,16);c.lineWidth=1.1;
+  c.beginPath();
+  c.moveTo(bx+f*6,by-10);
+  c.quadraticCurveTo(bx+f*12,by-40,hx-f*10,hy+14);
+  c.lineTo(hx+f*2,hy+14);
+  c.quadraticCurveTo(bx+f*24,by-38,bx+f*18,by-10);
+  c.closePath();c.stroke();
 
   // ── FRONT LEG ────────────────────────────────────────────────
   const lfBx=bx+f*8,lfBy=by+32;
@@ -705,10 +843,10 @@ function _drawRooster(c,cx,gy,pl){
   _drawFoot(c,lfAx,lfAy,f);
 
   // ── HEAD ─────────────────────────────────────────────────────
-  const hg=c.createRadialGradient(hx+f*7,hy-8,1,hx,hy,17);
-  hg.addColorStop(0,hsl(H,82,70));hg.addColorStop(.5,hsl(H,72,48));hg.addColorStop(1,hsl(H,60,26));
-  c.fillStyle=hg;c.beginPath();c.arc(hx,hy,15,0,Math.PI*2);c.fill();
-  c.strokeStyle=hsl(H,40,18);c.lineWidth=1.8;c.beginPath();c.arc(hx,hy,15,0,Math.PI*2);c.stroke();
+  const hg=c.createRadialGradient(hx+f*7,hy-7,1,hx,hy,17);
+  hg.addColorStop(0,hsl(H,82,72));hg.addColorStop(.45,hsl(H,74,50));hg.addColorStop(1,hsl(H,62,26));
+  c.fillStyle=hg;c.beginPath();c.ellipse(hx,hy,17,14,-.12*f,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(H,40,18);c.lineWidth=1.8;c.beginPath();c.ellipse(hx,hy,17,14,-.12*f,0,Math.PI*2);c.stroke();
 
   // ── COMB (tall gradient teeth) ────────────────────────────────
   c.fillStyle=hsl(C,92,26);c.beginPath();c.ellipse(hx-f*6,hy-9,11,7,0,0,Math.PI*2);c.fill();
@@ -1032,11 +1170,15 @@ function _roundRect(x,y,w,h,r,stroke=false){
 }
 
 function drawCDRow(p,x,y,align){
-  const bw=380,slotW=182,gap=16;
-  const ax=align==='left'?x:x+bw-slotW*2-gap;
-  const labels=align==='left'?{a:'F — BICADA',s:'G — ESPORÃO'}:{a:'↵ — BICADA',s:'⌫ — ESPORÃO'};
-  drawCDSlot(ax,   y,slotW,10,1-p.atkCD/p.ability.atkCD, '#e8c000',labels.a);
-  drawCDSlot(ax+slotW+gap,y,slotW,10,1-p.spurCD/p.ability.spurCD,'#e85000',labels.s);
+  const bw=380,slotW=114,gap=9;
+  const totalW=slotW*3+gap*2;
+  const ax=align==='left'?x:x+bw-totalW;
+  const labels=align==='left'
+    ?{a:'F — BICADA',s:'G — ESPORÃO',sp:'H — '+( p.ability.specialCD?'ESPECIAL':'')}
+    :{a:'↵ — BICADA',s:'⌫ — ESPORÃO',sp:'/ — '+( p.ability.specialCD?'ESPECIAL':'')};
+  drawCDSlot(ax,              y,slotW,10,1-p.atkCD/p.ability.atkCD,    '#e8c000',labels.a);
+  drawCDSlot(ax+slotW+gap,    y,slotW,10,1-p.spurCD/p.ability.spurCD,  '#e85000',labels.s);
+  drawCDSlot(ax+slotW*2+gap*2,y,slotW,10,p.ability.specialCD?1-p.specialCD/p.ability.specialCD:1,'#9050ff',labels.sp);
 }
 
 function drawCDSlot(x,y,w,h,ratio,col,label){
@@ -1146,13 +1288,18 @@ function _drawSelectPanel(panelX,idx,confirmed,facing,playerLabel,ctrlHint){
   // ability desc
   ctx.font='11px Georgia,serif';ctx.fillStyle='rgba(200,180,140,.85)';
   ctx.fillText(r.abilityDesc[0],cx,172);
-  ctx.fillText(r.abilityDesc[1],cx,185);
+  ctx.fillText(r.abilityDesc[1],cx,183);
+  // special attack label
+  ctx.font='bold 11px monospace';ctx.fillStyle='rgba(180,120,255,.95)';
+  ctx.fillText('★ '+r.specialName,cx,196);
+  ctx.font='10px Georgia,serif';ctx.fillStyle='rgba(160,110,220,.8)';
+  ctx.fillText(r.specialDesc,cx,207);
 
   // stat bars
   const bx=panelX+38,bw=pw-76,bh=10;
-  _statBar(bx,200,bw,bh,r.stats.vel,10,'#48c8ff','VEL');
-  _statBar(bx,216,bw,bh,r.stats.atk,10,'#ff6040','ATK');
-  _statBar(bx,232,bw,bh,r.stats.def,10,'#60e080','DEF');
+  _statBar(bx,218,bw,bh,r.stats.vel,10,'#48c8ff','VEL');
+  _statBar(bx,234,bw,bh,r.stats.atk,10,'#ff6040','ATK');
+  _statBar(bx,250,bw,bh,r.stats.def,10,'#60e080','DEF');
 
   // rooster preview (scale 1.35 around foot point)
   const rgy=395, rcx=cx;
@@ -1160,7 +1307,8 @@ function _drawSelectPanel(panelX,idx,confirmed,facing,playerLabel,ctrlHint){
   ctx.translate(rcx,rgy);ctx.scale(1.35,1.35);ctx.translate(-rcx,-rgy);
   const mock={feathers:r.feathers,comb:r.comb,element:r.element,facing,state:'idle',
                animT:Date.now()*.015,wingFlap:0,h:64,name:r.name,hideTag:true,
-               burning:0,frozen:0,stunned:0};
+               burning:0,frozen:0,stunned:0,phaseFrames:0,hp:100,maxHp:100,
+               ability:r.ability,frenesiTimer:0};
   _drawElementAura(ctx,rcx,rgy,mock);
   _drawRooster(ctx,rcx,rgy,mock);
   ctx.restore();
@@ -1253,8 +1401,8 @@ const RT=90;
 let gState='menu',tLeft=RT,winner=null,lastT=0;
 
 function startGame(r1,r2){
-  const c1={left:'KeyA',right:'KeyD',jump:'KeyW',atk:'KeyF',spur:'KeyG'};
-  const c2={left:'ArrowLeft',right:'ArrowRight',jump:'ArrowUp',atk:'Enter',spur:'Backspace'};
+  const c1={left:'KeyA',right:'KeyD',jump:'KeyW',atk:'KeyF',spur:'KeyG',special:'KeyH'};
+  const c2={left:'ArrowLeft',right:'ArrowRight',jump:'ArrowUp',atk:'Enter',spur:'Backspace',special:'Slash'};
   p1=new Player({...r1,startX:200,  facing:1,  ctrl:c1});
   p2=new Player({...r2,startX:W-250,facing:-1, ctrl:c2});
   tLeft=RT;winner=null;PT.length=0;gState='playing';
