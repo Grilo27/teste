@@ -659,256 +659,261 @@ function _drawRooster(c,cx,gy,pl){
   const bob=pl.state==='idle'?Math.sin(now*.004)*2.5:0;
   const wk=Math.sin((pl.animT||0)*.38)*11;
   const H=pl.feathers,C=pl.comb;
-  const bx=cx-f*4,by=gy-62+bob;
-  const hx=cx+f*28,hy=by-30;
-  const tX=cx-f*24,tY=by-12;
+  // upright posture anchors
+  const bx=cx,       by=gy-54+bob;    // body center
+  const hx=cx+f*22,  hy=by-50;        // head (higher, more vertical neck)
+  const rX=cx-f*16,  rY=by-2;         // rump / tail root
+  const nbx=cx+f*4,  nby=by-34;       // neck base (top of body)
 
-  // ── TAIL: fan (16 feathers) ──────────────────────────────────
-  for(let i=0;i<16;i++){
-    const t=(i/15)-.5;
-    const outer=Math.abs(t)>.36;
-    const ang=(f>0?Math.PI:0)+t*1.72-.11*f;
-    const len=outer?28+Math.abs(t)*22:44+Math.abs(.5-Math.abs(t))*36;
-    c.strokeStyle=hsl(H+t*26,outer?62:78,outer?16:28+Math.round((1-Math.abs(t*2))*18));
-    c.lineWidth=outer?1.8:5-Math.abs(t)*3.4;c.lineCap='round';
-    c.beginPath();c.moveTo(tX,tY);
-    c.quadraticCurveTo(tX+Math.cos(ang-.14*f)*len*.5,tY+Math.sin(ang-.14*f)*len*.5-17,
-      tX+Math.cos(ang)*len,tY+Math.sin(ang)*len);c.stroke();
-    if(!outer){
-      c.strokeStyle=hsl(H+t*16,52,13);c.lineWidth=.7;
-      c.beginPath();c.moveTo(tX,tY);c.lineTo(tX+Math.cos(ang)*len*.64,tY+Math.sin(ang)*len*.64);c.stroke();
-    }
-  }
-  // ── TAIL: sickle feathers (4 long dramatic arcs) ─────────────
-  const sickles=[
-    {cof:-f*24,coy:-58,ex:-f*6,ey:-84,w:4.6,dh:16},
-    {cof:-f*20,coy:-50,ex:-f*3,ey:-73,w:3.9,dh:9},
-    {cof:-f*15,coy:-40,ex:f*4,  ey:-60,w:3.1,dh:2},
-    {cof:-f*9, coy:-30,ex:f*11, ey:-46,w:2.2,dh:-5},
+  // ── TAIL: sickle feathers sweeping UP then back (like reference) ─
+  const sickDat=[
+    {len:96,w:5.2,cpOff:.38,dh:0 },
+    {len:82,w:4.0,cpOff:.32,dh:8 },
+    {len:68,w:3.2,cpOff:.26,dh:14},
+    {len:52,w:2.4,cpOff:.20,dh:18},
+    {len:38,w:1.7,cpOff:.14,dh:22},
   ];
-  for(const sk of sickles){
-    const qcx=tX+sk.cof,qcy=tY+sk.coy,ex=tX+sk.ex,ey=tY+sk.ey;
+  for(let i=0;i<sickDat.length;i++){
+    const sk=sickDat[i],t=i/4;
+    // arc: UP first, then sweeps back
+    const cpX=rX-f*(30+t*18), cpY=rY-(70+t*(-20));
+    const ex=rX-f*(60-t*10),  ey=rY+(30+t*20);
     c.save();c.lineCap='round';
-    c.strokeStyle=hsl(H+sk.dh-14,68,10);c.lineWidth=sk.w+2.5;
-    c.beginPath();c.moveTo(tX,tY);c.quadraticCurveTo(qcx,qcy,ex,ey);c.stroke();
-    c.strokeStyle=hsl(H+sk.dh,84,28);c.lineWidth=sk.w;
-    c.beginPath();c.moveTo(tX,tY);c.quadraticCurveTo(qcx,qcy,ex,ey);c.stroke();
-    c.strokeStyle=hsl(H+sk.dh+26,92,62);c.lineWidth=sk.w*.28;
-    c.beginPath();c.moveTo(tX,tY);
-    c.quadraticCurveTo(qcx*.9+tX*.1,qcy*.9+tY*.1,ex,ey);c.stroke();
+    c.strokeStyle=hsl(H+sk.dh,60,9); c.lineWidth=sk.w+2.8;
+    c.beginPath();c.moveTo(rX,rY);c.quadraticCurveTo(cpX,cpY,ex,ey);c.stroke();
+    c.strokeStyle=hsl(H+sk.dh,78,22); c.lineWidth=sk.w;
+    c.beginPath();c.moveTo(rX,rY);c.quadraticCurveTo(cpX,cpY,ex,ey);c.stroke();
+    c.strokeStyle=`hsla(${H+sk.dh+90},88%,58%,.42)`;c.lineWidth=sk.w*.25;
+    c.beginPath();c.moveTo(rX,rY);c.quadraticCurveTo(cpX*.88+rX*.12,cpY*.88+rY*.12,ex,ey);c.stroke();
     c.restore();
+  }
+  // base fan (short, spread outward)
+  for(let i=0;i<14;i++){
+    const t=(i/13)-.5;
+    const ang=(f>0?Math.PI:0)+t*1.5-.18*f;
+    const len=24+Math.abs(.5-Math.abs(t))*16;
+    c.strokeStyle=hsl(H+t*18,t<0?66:58,t<0?12:20);
+    c.lineWidth=3-Math.abs(t)*2.4;c.lineCap='round';
+    c.beginPath();c.moveTo(rX,rY);
+    c.quadraticCurveTo(rX+Math.cos(ang)*len*.5,rY+Math.sin(ang)*len*.5-8,
+      rX+Math.cos(ang)*len,rY+Math.sin(ang)*len);c.stroke();
   }
 
   // ── BACK LEG ─────────────────────────────────────────────────
-  const lbBx=bx-f*9,lbBy=by+30;
-  const lbKx=lbBx-f*1,lbKy=gy-28+wk;
-  const lbAx=lbKx+f*1,lbAy=gy-2;
-  c.lineCap='round';c.strokeStyle=hsl(H,52,30);c.lineWidth=7;
+  const lbBx=bx-f*8,lbBy=by+28;
+  const lbKx=lbBx-f*2,lbKy=gy-28+wk;
+  const lbAx=lbKx,lbAy=gy-2;
+  c.lineCap='round';c.strokeStyle=hsl(24,34,20);c.lineWidth=6.5;
   c.beginPath();c.moveTo(lbBx,lbBy);c.lineTo(lbKx,lbKy+4);c.stroke();
-  c.strokeStyle=hsl(26,44,26);c.lineWidth=5.5;
+  c.strokeStyle=hsl(22,28,16);c.lineWidth=5;
   c.beginPath();c.moveTo(lbKx,lbKy);c.lineTo(lbAx,lbAy);c.stroke();
-  c.strokeStyle=hsl(24,28,18);c.lineWidth=1.2;
-  for(let i=1;i<6;i++){const ly=lbKy+(lbAy-lbKy)*i/6;c.beginPath();c.moveTo(lbAx-f*4,ly);c.lineTo(lbAx+f*4,ly+2);c.stroke();}
-  c.fillStyle=hsl(28,42,24);c.beginPath();c.arc(lbKx,lbKy,5.5,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(20,22,12);c.lineWidth=1;
+  for(let i=1;i<6;i++){const ly=lbKy+(lbAy-lbKy)*i/6;c.beginPath();c.moveTo(lbAx-f*3.5,ly);c.lineTo(lbAx+f*3.5,ly+2);c.stroke();}
+  c.fillStyle=hsl(24,38,22);c.beginPath();c.arc(lbKx,lbKy,5,0,Math.PI*2);c.fill();
   _drawFoot(c,lbAx,lbAy,f);
 
-  // ── BODY: bezier silhouette (chest puffed, flat back, proper rooster shape) ──
+  // ── BODY: upright compact bezier ─────────────────────────────
   function bodyPath(){
     c.beginPath();
-    c.moveTo(bx-f*20, by+14);              // rump
-    c.bezierCurveTo(bx-f*16,by-22, bx+f*4,by-34, bx+f*12,by-32);  // back → neck base
-    c.bezierCurveTo(bx+f*30,by-24, bx+f*34,by+8,  bx+f*26,by+24);  // chest bulge
-    c.bezierCurveTo(bx+f*14,by+36, bx-f*6, by+34, bx-f*20,by+14);  // belly → rump
+    c.moveTo(rX,rY+6);                                               // rump base
+    c.bezierCurveTo(rX-f*6,rY-18, bx+f*4,by-26, bx+f*10,by-24);    // back → neck base
+    c.bezierCurveTo(bx+f*26,by-16, bx+f*28,by+14, bx+f*18,by+28);  // chest
+    c.bezierCurveTo(bx+f*6, by+36, rX+f*8,rY+22,  rX,rY+6);        // belly → rump
     c.closePath();
   }
-  const bf=c.createRadialGradient(bx+f*16,by-12,2,bx+f*4,by,42);
-  bf.addColorStop(0,hsl(H,82,76));bf.addColorStop(.22,hsl(H,76,58));
-  bf.addColorStop(.58,hsl(H,66,36));bf.addColorStop(1,hsl(H,54,16));
+  const bf=c.createRadialGradient(bx+f*14,by-6,2,bx+f*2,by+10,36);
+  bf.addColorStop(0,hsl(H+10,86,74));bf.addColorStop(.28,hsl(H+2,78,54));
+  bf.addColorStop(.62,hsl(H-4,64,32));bf.addColorStop(1,hsl(H-8,52,14));
   c.fillStyle=bf;bodyPath();c.fill();
-  // feather scales drawn inside body silhouette
   c.save();bodyPath();c.clip();
   for(let row=0;row<7;row++){
-    for(let col=-3;col<=4;col++){
-      const fx=bx+f*(col*7.5-2),fy=by-28+row*11;
-      const nx=(fx-bx)/34,ny=(fy-by)/40;
-      if(nx*nx+ny*ny>0.86)continue;
+    for(let col=-2;col<=3;col++){
+      const fx=bx+f*(col*7-1),fy=by-20+row*10;
+      const nx=(fx-bx)/28,ny=(fy-by)/34;
+      if(nx*nx+ny*ny>.9)continue;
       const d=Math.sqrt(nx*nx+ny*ny);
-      c.fillStyle=hsl(H+col*2,64,20+row*2-d*8);
-      c.beginPath();
-      c.moveTo(fx-f*5.5,fy);
-      c.quadraticCurveTo(fx+f*.5,fy-6.5,fx+f*6.5,fy);
-      c.quadraticCurveTo(fx+f*4.5,fy+5.5,fx-f*4.5,fy+5.5);
+      c.fillStyle=hsl(H+col*3,66,22+row*2.5-d*7);
+      c.beginPath();c.moveTo(fx-f*4.5,fy);
+      c.quadraticCurveTo(fx+f*.5,fy-5.5,fx+f*5.5,fy);
+      c.quadraticCurveTo(fx+f*3.5,fy+5,fx-f*3.5,fy+5);
       c.closePath();c.fill();
     }
   }
   c.restore();
-  c.strokeStyle=hsl(H,38,12);c.lineWidth=2;bodyPath();c.stroke();
-  // specular highlight (chest area)
-  const bh2=c.createRadialGradient(bx+f*18,by-10,1,bx+f*10,by-2,24);
-  bh2.addColorStop(0,`hsla(${H+8},92%,86%,.68)`);bh2.addColorStop(1,`hsla(${H},78%,54%,0)`);
-  c.fillStyle=bh2;c.beginPath();c.ellipse(bx+f*10,by-2,20,24,0,0,Math.PI*2);c.fill();
-  // iridescent animated sheen
+  c.strokeStyle=hsl(H,36,12);c.lineWidth=1.8;bodyPath();c.stroke();
   const iShift=Math.sin(now*.0016)*40;
-  const ir=c.createLinearGradient(bx-f*30,by-36,bx+f*26,by+32);
+  const ir=c.createLinearGradient(rX-8,by-28,bx+f*28,by+32);
   ir.addColorStop(0,`hsla(${H+iShift},95%,82%,0)`);
-  ir.addColorStop(.35,`hsla(${H+iShift+55},100%,80%,.26)`);
-  ir.addColorStop(.72,`hsla(${H+iShift+110},90%,74%,.14)`);
+  ir.addColorStop(.35,`hsla(${H+iShift+55},100%,80%,.22)`);
+  ir.addColorStop(.72,`hsla(${H+iShift+110},90%,74%,.12)`);
   ir.addColorStop(1,`hsla(${H+iShift},95%,82%,0)`);
   c.fillStyle=ir;bodyPath();c.fill();
 
-  // ── SADDLE FEATHERS (long flowing from lower-back to tail) ───
+  // ── SADDLE FEATHERS ───────────────────────────────────────────
   for(let i=0;i<7;i++){
     const t=i/6;
-    const sx=tX+f*(10+t*12),sy=by+2-t*8;
-    const sLen=20+t*22;
-    const sw=3.5-t*1.2;
-    c.fillStyle=hsl(H+16+t*10,86,44-t*12);
-    c.beginPath();
-    c.moveTo(sx,sy);
-    c.quadraticCurveTo(sx-f*(3.5+t*5),sy+sLen*.42,sx-f*(6+t*10),sy+sLen);
-    c.quadraticCurveTo(sx-f*(1+t*2),sy+sLen*.36,sx,sy);
-    c.fill();
-    c.strokeStyle=hsl(H+8,54,22);c.lineWidth=.45;c.stroke();
+    const sx=rX+f*(5+t*10),sy=rY-4-t*8;
+    const sLen=18+t*20;
+    c.fillStyle=hsl(H+18+t*10,88,46-t*12);
+    c.beginPath();c.moveTo(sx,sy);
+    c.quadraticCurveTo(sx-f*(3+t*4),sy+sLen*.44,sx-f*(5+t*9),sy+sLen);
+    c.quadraticCurveTo(sx-f*(1+t*2),sy+sLen*.38,sx,sy);
+    c.fill();c.strokeStyle=hsl(H+8,52,20);c.lineWidth=.4;c.stroke();
   }
 
-  // ── WING ─────────────────────────────────────────────────────
-  const wAng=(pl.wingFlap>0||pl.state==='air')?-.6*f:(pl.state==='peck')?-.34*f:.07*f;
-  c.save();c.translate(bx-f*2,by+2);c.rotate(wAng);
-  c.fillStyle=hsl(H+6,66,42);c.beginPath();c.ellipse(-f,0,16,18,.1*f,0,Math.PI*2);c.fill();
+  // ── WING (iridescent blue/teal coverts like reference photo) ──
+  const wAng=(pl.wingFlap>0||pl.state==='air')?-.55*f:(pl.state==='peck')?-.3*f:.05*f;
+  c.save();c.translate(bx+f*2,by+6);c.rotate(wAng);
+  // covert panel — deep blue/teal
+  const wcg=c.createRadialGradient(f*3,0,1,0,4,24);
+  wcg.addColorStop(0,`hsl(${H+155},70%,42%)`);
+  wcg.addColorStop(.5,`hsl(${H+148},58%,26%)`);
+  wcg.addColorStop(1,`hsl(${H+140},46%,12%)`);
+  c.fillStyle=wcg;c.beginPath();c.ellipse(f*2,2,20,24,.08*f,0,Math.PI*2);c.fill();
+  // animated iridescent sheen on covert
+  const wingShift=Math.sin(now*.002+1.4)*50;
+  const wIr=c.createLinearGradient(-18,0,18,0);
+  wIr.addColorStop(0,`hsla(${H+wingShift+140},90%,62%,0)`);
+  wIr.addColorStop(.45,`hsla(${H+wingShift+180},100%,72%,.38)`);
+  wIr.addColorStop(1,`hsla(${H+wingShift+140},90%,62%,0)`);
+  c.fillStyle=wIr;c.beginPath();c.ellipse(f*2,2,20,24,.08*f,0,Math.PI*2);c.fill();
+  // primary flight feathers (dark, long)
   for(let i=0;i<9;i++){
-    const t=i/8,fLen=18+t*14,fWid=5-t*.6;
-    const angle=(-.27-t*.96)*f;
-    const px=-f*3+i*f*1.55,py=3+i*1.9;
+    const t=i/8,fLen=22+t*15,fWid=5-t*.5;
+    const angle=(-.24-t*.88)*f;
+    const px=-f*2+i*f*1.85,py=5+i*2.4;
     c.save();c.translate(px,py);c.rotate(angle);
-    c.fillStyle=hsl(H-2+i*2.8,58,13+i*3.8);
+    c.fillStyle=hsl(H+142+i*5,52,8+i*3);
     c.beginPath();
-    c.moveTo(0,0);c.quadraticCurveTo(fWid*.82,fLen*.36,fWid*.56,fLen);
-    c.lineTo(0,fLen+4);c.quadraticCurveTo(-fWid*.36,fLen*.36,0,0);c.fill();
-    c.strokeStyle=hsl(H+i*3,50,9);c.lineWidth=.62;
+    c.moveTo(0,0);c.quadraticCurveTo(fWid*.8,fLen*.38,fWid*.52,fLen);
+    c.lineTo(0,fLen+4);c.quadraticCurveTo(-fWid*.3,fLen*.38,0,0);c.fill();
+    // iridescent stripe
+    c.fillStyle=`hsla(${H+160+i*6},80%,58%,.28)`;
+    c.beginPath();c.moveTo(0,4);c.lineTo(fWid*.28,fLen*.58);c.lineTo(0,fLen+2);c.closePath();c.fill();
+    c.strokeStyle=hsl(H+140,40,6);c.lineWidth=.5;
     c.beginPath();c.moveTo(0,1);c.lineTo(0,fLen+3);c.stroke();
     c.restore();
   }
-  c.strokeStyle=hsl(H,36,12);c.lineWidth=1.1;
-  c.beginPath();c.ellipse(-f,0,16,18,.1*f,0,Math.PI*2);c.stroke();
+  c.strokeStyle=hsl(H+140,34,9);c.lineWidth=1;
+  c.beginPath();c.ellipse(f*2,2,20,24,.08*f,0,Math.PI*2);c.stroke();
   c.restore();
 
-  // ── NECK HACKLE (9 long flowing feathers) ────────────────────
-  for(let i=0;i<9;i++){
-    const t=i/8;
-    const hkx=bx+f*(10+t*20),hky=by-22-t*20;
-    const hkLen=18+t*20;
-    c.fillStyle=hsl(H+14,92,66-t*16);
-    c.beginPath();
-    c.moveTo(hkx,hky);
-    c.quadraticCurveTo(hkx+f*(3.5+t*3.5),hky-hkLen*.52,hkx+f*(1.5+t*1.2),hky-hkLen);
-    c.quadraticCurveTo(hkx-f*3.5,hky-hkLen*.44,hkx,hky);
-    c.fill();
-    c.strokeStyle=hsl(H+4,50,22);c.lineWidth=.42;c.stroke();
-  }
-  // ── NECK (filled bezier silhouette) ──────────────────────────
-  const ng=c.createLinearGradient(bx+f*6,by-10,bx+f*20,by-10);
-  ng.addColorStop(0,hsl(H,64,28));ng.addColorStop(.5,hsl(H,72,46));ng.addColorStop(1,hsl(H,60,26));
+  // ── NECK (filled, upright) ────────────────────────────────────
+  const ng=c.createLinearGradient(nbx-f*7,nby,nbx+f*8,nby);
+  ng.addColorStop(0,hsl(H+10,68,30));ng.addColorStop(.5,hsl(H+16,78,54));ng.addColorStop(1,hsl(H+8,60,26));
   c.fillStyle=ng;
   c.beginPath();
-  c.moveTo(bx+f*6,by-10);
-  c.quadraticCurveTo(bx+f*12,by-40,hx-f*10,hy+14);
-  c.lineTo(hx+f*2,hy+14);
-  c.quadraticCurveTo(bx+f*24,by-38,bx+f*18,by-10);
+  c.moveTo(nbx-f*7,nby+6);
+  c.quadraticCurveTo(nbx-f*9,nby-18,hx-f*10,hy+12);
+  c.lineTo(hx+f*3,hy+12);
+  c.quadraticCurveTo(nbx+f*9,nby-16,nbx+f*7,nby+6);
   c.closePath();c.fill();
-  c.fillStyle=`hsla(${H+8},82%,68%,.36)`;
+  c.fillStyle=`hsla(${H+18},84%,70%,.38)`;
   c.beginPath();
-  c.moveTo(bx+f*9,by-12);
-  c.quadraticCurveTo(bx+f*14,by-40,hx-f*7,hy+15);
-  c.lineTo(hx-f*3,hy+15);
-  c.quadraticCurveTo(bx+f*18,by-38,bx+f*12,by-12);
+  c.moveTo(nbx-f*2,nby+4);
+  c.quadraticCurveTo(nbx-f*4,nby-16,hx-f*6,hy+13);
+  c.lineTo(hx+f*1,hy+13);
+  c.quadraticCurveTo(nbx+f*5,nby-14,nbx+f*2,nby+4);
   c.closePath();c.fill();
-  c.strokeStyle=hsl(H,38,16);c.lineWidth=1.1;
+  c.strokeStyle=hsl(H+4,38,14);c.lineWidth=1;
   c.beginPath();
-  c.moveTo(bx+f*6,by-10);
-  c.quadraticCurveTo(bx+f*12,by-40,hx-f*10,hy+14);
-  c.lineTo(hx+f*2,hy+14);
-  c.quadraticCurveTo(bx+f*24,by-38,bx+f*18,by-10);
+  c.moveTo(nbx-f*7,nby+6);
+  c.quadraticCurveTo(nbx-f*9,nby-18,hx-f*10,hy+12);
+  c.lineTo(hx+f*3,hy+12);
+  c.quadraticCurveTo(nbx+f*9,nby-16,nbx+f*7,nby+6);
   c.closePath();c.stroke();
 
+  // ── HACKLE CASCADE (golden lance feathers neck→breast, KEY feature) ──
+  for(let i=0;i<16;i++){
+    const t=i/15;
+    const rx2=nbx+f*(t*8-3), ry2=nby+t*12;
+    const flen=20+t*22;
+    const tipX=rx2+f*(1+t*4);
+    const tipY=ry2+flen;
+    c.fillStyle=hsl(H+20+t*8,92,64-t*12);
+    c.beginPath();c.moveTo(rx2,ry2);
+    c.quadraticCurveTo(rx2+f*(2+t*3),ry2+flen*.5,tipX,tipY);
+    c.quadraticCurveTo(rx2-f*(1.5+t*2),ry2+flen*.5,rx2,ry2);
+    c.fill();c.strokeStyle=hsl(H+12,58,26);c.lineWidth=.32;c.stroke();
+  }
+
   // ── FRONT LEG ────────────────────────────────────────────────
-  const lfBx=bx+f*8,lfBy=by+32;
-  const lfKx=lfBx+f*6,lfKy=gy-24-wk*.45;
-  const lfAx=lfKx+f*2,lfAy=gy-2;
-  c.strokeStyle=hsl(H,52,30);c.lineWidth=7.5;
+  const lfBx=bx+f*10,lfBy=by+26;
+  const lfKx=lfBx+f*5,lfKy=gy-26-wk*.4;
+  const lfAx=lfKx,lfAy=gy-2;
+  c.strokeStyle=hsl(24,36,20);c.lineWidth=7;
   c.beginPath();c.moveTo(lfBx,lfBy);c.lineTo(lfKx,lfKy+4);c.stroke();
-  c.strokeStyle=hsl(26,38,24);c.lineWidth=6;
+  c.strokeStyle=hsl(22,28,16);c.lineWidth=5.5;
   c.beginPath();c.moveTo(lfKx,lfKy);c.lineTo(lfAx,lfAy);c.stroke();
-  c.strokeStyle=hsl(24,26,16);c.lineWidth=1.2;
-  for(let i=1;i<6;i++){const ly=lfKy+(lfAy-lfKy)*i/6;c.beginPath();c.moveTo(lfAx-f*4.5,ly);c.lineTo(lfAx+f*4.5,ly+2);c.stroke();}
-  c.fillStyle=hsl(28,44,24);c.beginPath();c.arc(lfKx,lfKy,6,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(20,22,12);c.lineWidth=1.1;
+  for(let i=1;i<6;i++){const ly=lfKy+(lfAy-lfKy)*i/6;c.beginPath();c.moveTo(lfAx-f*4,ly);c.lineTo(lfAx+f*4,ly+2);c.stroke();}
+  c.fillStyle=hsl(26,40,22);c.beginPath();c.arc(lfKx,lfKy,5.5,0,Math.PI*2);c.fill();
   const sg=pl.state==='spur';
-  const spBx=lfKx-f*3,spBy=lfKy+18;
+  const spBx=lfKx-f*3,spBy=lfKy+16;
   c.save();c.lineCap='round';
-  c.strokeStyle=sg?'rgba(255,230,90,.95)':hsl(30,26,54);c.lineWidth=sg?4.2:3;
-  c.beginPath();c.moveTo(spBx,spBy);c.quadraticCurveTo(spBx-f*5,spBy-10,spBx-f*14,spBy-22);c.stroke();
-  if(sg){c.strokeStyle='rgba(255,210,60,.32)';c.lineWidth=11;c.beginPath();c.moveTo(spBx,spBy);c.quadraticCurveTo(spBx-f*5,spBy-10,spBx-f*14,spBy-22);c.stroke();}
+  c.strokeStyle=sg?'rgba(255,230,90,.95)':hsl(30,24,52);c.lineWidth=sg?4:2.8;
+  c.beginPath();c.moveTo(spBx,spBy);c.quadraticCurveTo(spBx-f*4,spBy-9,spBx-f*12,spBy-20);c.stroke();
+  if(sg){c.strokeStyle='rgba(255,210,60,.28)';c.lineWidth=10;c.beginPath();c.moveTo(spBx,spBy);c.quadraticCurveTo(spBx-f*4,spBy-9,spBx-f*12,spBy-20);c.stroke();}
   c.restore();
   _drawFoot(c,lfAx,lfAy,f);
 
   // ── HEAD ─────────────────────────────────────────────────────
-  const hg=c.createRadialGradient(hx+f*7,hy-7,1,hx,hy,17);
-  hg.addColorStop(0,hsl(H,82,72));hg.addColorStop(.45,hsl(H,74,50));hg.addColorStop(1,hsl(H,62,26));
-  c.fillStyle=hg;c.beginPath();c.ellipse(hx,hy,17,14,-.12*f,0,Math.PI*2);c.fill();
-  c.strokeStyle=hsl(H,40,18);c.lineWidth=1.8;c.beginPath();c.ellipse(hx,hy,17,14,-.12*f,0,Math.PI*2);c.stroke();
+  const hg=c.createRadialGradient(hx+f*5,hy-6,1,hx,hy,15);
+  hg.addColorStop(0,hsl(H+12,84,72));hg.addColorStop(.42,hsl(H+4,76,50));hg.addColorStop(1,hsl(H-2,62,26));
+  c.fillStyle=hg;c.beginPath();c.ellipse(hx,hy,15,13,-.1*f,0,Math.PI*2);c.fill();
+  c.strokeStyle=hsl(H,36,14);c.lineWidth=1.5;c.beginPath();c.ellipse(hx,hy,15,13,-.1*f,0,Math.PI*2);c.stroke();
 
-  // ── COMB (tall gradient teeth) ────────────────────────────────
-  c.fillStyle=hsl(C,92,26);c.beginPath();c.ellipse(hx-f*6,hy-9,11,7,0,0,Math.PI*2);c.fill();
-  const combPts=[[-12,-18],[-7,-28],[-1,-21],[4,-32],[9,-24],[13,-15]];
+  // ── COMB (serrated red, tall like reference) ──────────────────
+  c.fillStyle=hsl(C,90,24);c.beginPath();c.ellipse(hx-f*3,hy-10,10,6,0,0,Math.PI*2);c.fill();
+  const combPts=[[-10,-20],[-4,-30],[2,-22],[8,-34],[13,-24],[17,-15]];
   for(let i=0;i<combPts.length;i++){
     const[dx,dy]=combPts[i];
-    const cg=c.createLinearGradient(hx+dx*f,hy+dy,hx+dx*f,hy-4);
-    cg.addColorStop(0,hsl(C,98,50));cg.addColorStop(1,hsl(C,90,28));
+    const cg=c.createLinearGradient(hx+dx*f,hy+dy,hx+dx*f,hy-5);
+    cg.addColorStop(0,hsl(C,96,52));cg.addColorStop(1,hsl(C,88,30));
     c.fillStyle=cg;
-    c.beginPath();c.moveTo(hx+(dx-3)*f,hy-5);
-    c.quadraticCurveTo(hx+(dx-2)*f-f*2,hy+dy-4,hx+dx*f,hy+dy);
-    c.quadraticCurveTo(hx+(dx+2)*f-f*.5,hy+dy-4,hx+(dx+4)*f,hy-5);
+    c.beginPath();c.moveTo(hx+(dx-3)*f,hy-6);
+    c.quadraticCurveTo(hx+(dx-2)*f,hy+dy-3,hx+dx*f,hy+dy);
+    c.quadraticCurveTo(hx+(dx+3)*f,hy+dy-3,hx+(dx+4)*f,hy-6);
     c.closePath();c.fill();
   }
-  c.strokeStyle=hsl(C,70,16);c.lineWidth=.9;
-  c.beginPath();c.moveTo(hx-f*14,hy-5);
+  c.strokeStyle=hsl(C,66,14);c.lineWidth=.8;
+  c.beginPath();c.moveTo(hx-f*13,hy-6);
   for(const[dx,dy]of combPts)c.lineTo(hx+dx*f,hy+dy);
-  c.lineTo(hx+f*16,hy-5);c.stroke();
+  c.lineTo(hx+f*20,hy-6);c.stroke();
 
-  // ── WATTLE ───────────────────────────────────────────────────
-  const wg1=c.createRadialGradient(hx+f*13,hy+15,2,hx+f*11,hy+18,13);
-  wg1.addColorStop(0,hsl(C,90,40));wg1.addColorStop(1,hsl(C,80,22));
-  c.fillStyle=wg1;c.beginPath();
-  c.moveTo(hx+f*10,hy+7);c.quadraticCurveTo(hx+f*18,hy+15,hx+f*14,hy+30);
-  c.quadraticCurveTo(hx+f*6,hy+32,hx+f*9,hy+17);c.closePath();c.fill();
-  c.strokeStyle=hsl(C,56,16);c.lineWidth=.9;c.stroke();
-  c.fillStyle=hsl(C,84,34);c.beginPath();
-  c.moveTo(hx+f*8,hy+9);c.quadraticCurveTo(hx+f*15,hy+16,hx+f*12,hy+28);
-  c.quadraticCurveTo(hx+f*5,hy+28,hx+f*8,hy+17);c.closePath();c.fill();
-  c.strokeStyle=hsl(C,54,18);c.lineWidth=.65;c.stroke();
+  // ── WATTLE (two round red lobes like reference) ───────────────
+  for(let w=0;w<2;w++){
+    const wox=f*(5+w*5),woy=w*9;
+    const wgr=c.createRadialGradient(hx+wox,hy+13+woy,1,hx+wox,hy+17+woy,10-w*2);
+    wgr.addColorStop(0,hsl(C,88,42));wgr.addColorStop(1,hsl(C,74,20));
+    c.fillStyle=wgr;
+    c.beginPath();c.ellipse(hx+wox,hy+18+woy,8-w*2,11-w*3,-.08*f,0,Math.PI*2);c.fill();
+    c.strokeStyle=hsl(C,52,14);c.lineWidth=.65;c.stroke();
+  }
 
   // ── BEAK ─────────────────────────────────────────────────────
-  const bp=pl.state==='peck'?f*14:0;
-  c.fillStyle='#eacb28';c.beginPath();
-  c.moveTo(hx+f*12+bp,hy-8);c.quadraticCurveTo(hx+f*23+bp,hy-5,hx+f*29+bp,hy+1);
-  c.lineTo(hx+f*12+bp,hy+3);c.closePath();c.fill();
-  c.fillStyle='#b89012';c.beginPath();
-  c.moveTo(hx+f*12+bp,hy+3);c.quadraticCurveTo(hx+f*22+bp,hy+8,hx+f*27+bp,hy+5);
-  c.lineTo(hx+f*12+bp,hy+10);c.closePath();c.fill();
-  c.strokeStyle='rgba(100,78,0,.5)';c.lineWidth=.8;
-  c.beginPath();c.moveTo(hx+f*12+bp,hy+1);c.lineTo(hx+f*28+bp,hy+2);c.stroke();
-  c.fillStyle='#241500';c.beginPath();c.arc(hx+f*18+bp,hy-4,2,0,Math.PI*2);c.fill();
+  const bp=pl.state==='peck'?f*13:0;
+  c.fillStyle='#d4b820';c.beginPath();
+  c.moveTo(hx+f*10+bp,hy-7);c.quadraticCurveTo(hx+f*21+bp,hy-4,hx+f*26+bp,hy+1);
+  c.lineTo(hx+f*10+bp,hy+3);c.closePath();c.fill();
+  c.fillStyle='#a08010';c.beginPath();
+  c.moveTo(hx+f*10+bp,hy+3);c.quadraticCurveTo(hx+f*20+bp,hy+7,hx+f*24+bp,hy+5);
+  c.lineTo(hx+f*10+bp,hy+8);c.closePath();c.fill();
+  c.strokeStyle='rgba(72,52,0,.42)';c.lineWidth=.7;
+  c.beginPath();c.moveTo(hx+f*10+bp,hy+1);c.lineTo(hx+f*25+bp,hy+2);c.stroke();
+  c.fillStyle='#180800';c.beginPath();c.arc(hx+f*15+bp,hy-4,1.7,0,Math.PI*2);c.fill();
 
   // ── EYE ──────────────────────────────────────────────────────
-  c.fillStyle=hsl(H-8,48,20);c.beginPath();c.arc(hx+f*4,hy-5,8.5,0,Math.PI*2);c.fill();
-  c.fillStyle='#d49800';c.beginPath();c.arc(hx+f*4,hy-5,7,0,Math.PI*2);c.fill();
+  c.fillStyle=hsl(H-6,44,18);c.beginPath();c.arc(hx+f*2,hy-4,8,0,Math.PI*2);c.fill();
+  c.fillStyle='#c48c00';c.beginPath();c.arc(hx+f*2,hy-4,6.5,0,Math.PI*2);c.fill();
   for(let i=0;i<10;i++){
     const a=i/10*Math.PI*2;
-    c.fillStyle=hsl(38,82,30);
-    c.beginPath();c.arc(hx+f*4+Math.cos(a)*4.8,hy-5+Math.sin(a)*4.8,1.3,0,Math.PI*2);c.fill();
+    c.fillStyle=hsl(36,78,28);
+    c.beginPath();c.arc(hx+f*2+Math.cos(a)*4.2,hy-4+Math.sin(a)*4.2,1.1,0,Math.PI*2);c.fill();
   }
-  c.fillStyle='#050100';c.beginPath();c.arc(hx+f*4+f*.6,hy-5,4.2,0,Math.PI*2);c.fill();
-  c.fillStyle='rgba(255,255,255,.92)';c.beginPath();c.arc(hx+f*4+f*.6+1,hy-7,1.7,0,Math.PI*2);c.fill();
-  c.fillStyle='rgba(255,255,255,.32)';c.beginPath();c.arc(hx+f*4+f*.6-1.4,hy-3.5,.8,0,Math.PI*2);c.fill();
+  c.fillStyle='#030100';c.beginPath();c.arc(hx+f*2+f*.5,hy-4,3.7,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.94)';c.beginPath();c.arc(hx+f*2+f*.5+1,hy-6,1.5,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.26)';c.beginPath();c.arc(hx+f*2+f*.5-1,hy-2,.7,0,Math.PI*2);c.fill();
 
   // ── NAME TAG ─────────────────────────────────────────────────
   if(!pl.hideTag){
