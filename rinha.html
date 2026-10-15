@@ -588,6 +588,131 @@ class Player{
       this.vy=28;this.grounded=false;this.slamming=true;
       for(let i=0;i<20;i++)spawnP(Math.random()*W,GROUND_Y-rr(0,30),1,32);
       shake(20);
+    } else if(el==='storm'){
+      triggerUltAnn(this.ability.specialName,'#78c8ff');
+      // FURACÃO TOTAL: 3 rajadas de vento — 20 dmg cada = 60 total
+      for(let i=0;i<3;i++){
+        if(other&&!other.dead){
+          const dmg=Math.round(20*other.ability.defMult);
+          other.hp=Math.max(0,other.hp-dmg);other.hitTimer=22;
+          other.vx=f*10*this.ability.kbMult;other.vy=-5;
+          other.stunned=Math.max(other.stunned,30);
+          spawnP(other.x+other.w/2+rr(-30,30),other.y+rr(-10,30),10,195);
+        }
+      }
+      if(other&&other.hp<=0)other.dead=true;
+      shake(14);
+    } else if(el==='dragon'){
+      triggerUltAnn(this.ability.specialName,'#ff8040');
+      // VÔOS DE DRAGÃO: mergulho aéreo pesado — 65 dmg
+      if(other&&!other.dead){
+        const dmg=Math.round(65*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=60;
+        other.vx=f*12*this.ability.kbMult;other.vy=-10;
+        for(let i=0;i<50;i++)spawnP(other.x+other.w/2+rr(-50,50),other.y+rr(-30,30),1,15);
+        if(other.hp<=0)other.dead=true;
+      }
+      this.vy=-18;this.grounded=false;
+      shake(22);
+    } else if(el==='phoenix'){
+      triggerUltAnn(this.ability.specialName,'#ffa030');
+      // AURA DE CHAMAS: 30 dmg + burning pesado
+      if(other&&!other.dead){
+        other.burning=Math.max(other.burning,300);
+        const dmg=Math.round(30*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=35;
+        other.vx=f*7*this.ability.kbMult;other.vy=-5;
+        for(let i=0;i<35;i++)spawnP(other.x+other.w/2+rr(-40,40),other.y+rr(-20,20),1,25);
+        if(other.hp<=0)other.dead=true;
+      }
+      for(let i=0;i<25;i++)spawnP(this.x+this.w/2+rr(-50,50),this.y+rr(-30,10),1,20);
+      shake(16);
+    } else if(el==='water'){
+      triggerUltAnn(this.ability.specialName,'#40c8ff');
+      // TSUNAMI: onda gigante — 55 dmg + empurrão extremo
+      if(other&&!other.dead){
+        const dmg=Math.round(55*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=55;
+        other.vx=f*16*this.ability.kbMult;other.vy=-8;
+        for(let i=0;i<45;i++)spawnP(other.x+other.w/2+rr(-70,70),other.y+rr(0,40),1,210);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(18);
+    } else if(el==='plasma'){
+      triggerUltAnn(this.ability.specialName,'#d080ff');
+      // PULSO MAGNÉTICO: EMP — 15 dmg + atordoa 120f
+      if(other&&!other.dead){
+        const dmg=Math.round(15*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=30;
+        other.stunned=Math.max(other.stunned,120);
+        other.vx*=0.1;other.vy*=0.1;
+        for(let i=0;i<32;i++){const a=i/32*Math.PI*2;spawnP(other.x+other.w/2+Math.cos(a)*50,other.y+20+Math.sin(a)*30,1,170);}
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(12);
+    } else if(el==='web'){
+      triggerUltAnn(this.ability.specialName,'#a0ff60');
+      // ARMADILHA TOTAL: teia — 12 dmg + imobiliza 120f
+      if(other&&!other.dead){
+        const dmg=Math.round(12*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=25;
+        other.frozen=Math.max(other.frozen,120);
+        other.vx=0;other.vy=0;
+        for(let i=0;i<28;i++)spawnP(other.x+other.w/2+rr(-35,35),other.y+rr(0,35),1,85);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(8);
+    } else if(el==='spirit'){
+      triggerUltAnn(this.ability.specialName,'#a0b8ff');
+      // BANIMENTO: 25 dmg + atordoa 90f + auto fase 120f
+      if(other&&!other.dead){
+        const dmg=Math.round(25*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=28;
+        other.stunned=Math.max(other.stunned,90);
+        for(let i=0;i<22;i++)spawnP(other.x+other.w/2+rr(-30,30),other.y+rr(-20,30),1,248);
+        if(other.hp<=0)other.dead=true;
+      }
+      this.phaseFrames=120;
+      for(let i=0;i<18;i++)spawnP(this.x+this.w/2+rr(-30,30),this.y+rr(-20,20),1,248);
+      shake(10);
+    } else if(el==='magma'){
+      triggerUltAnn(this.ability.specialName,'#ff6020');
+      // ERUPÇÃO: pilares de lava — 80 dmg + burning
+      if(other&&!other.dead){
+        other.burning=Math.max(other.burning,250);
+        const dmg=Math.round(80*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=72;
+        other.vx=f*10*this.ability.kbMult;other.vy=-9;
+        for(let i=0;i<70;i++)spawnP(Math.random()*W,GROUND_Y-rr(0,50),1,10);
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(30);
+    } else if(el==='dark_titan'){
+      triggerUltAnn(this.ability.specialName,'#8080c0');
+      // COLAPSO SOMBRIO: esfera negra — 65 dmg + arrasta
+      if(other&&!other.dead){
+        const dmg=Math.round(65*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=65;
+        other.vx=f*13*this.ability.kbMult;other.vy=-11;
+        other.stunned=Math.max(other.stunned,50);
+        for(let i=0;i<55;i++)spawnP(other.x+other.w/2+rr(-45,45),other.y+rr(-20,30),1,310);
+        if(other.hp<=0)other.dead=true;
+      }
+      for(let i=0;i<30;i++)spawnP(Math.random()*W,GROUND_Y-rr(0,35),1,285);
+      shake(26);
+    } else if(el==='cosmos'){
+      triggerUltAnn(this.ability.specialName,'#c0a0ff');
+      // BURACO NEGRO: 35 dmg + gravidade 180f (atordoamento longo)
+      if(other&&!other.dead){
+        const dmg=Math.round(35*other.ability.defMult);
+        other.hp=Math.max(0,other.hp-dmg);other.hitTimer=35;
+        other.stunned=Math.max(other.stunned,180);
+        other.vx=(this.x+this.w/2>other.x+other.w/2?1:-1)*-6*this.ability.kbMult;
+        other.vy=-3;
+        for(let i=0;i<40;i++){const a=i/40*Math.PI*2;spawnP(this.x+this.w/2+Math.cos(a)*60,this.y+20+Math.sin(a)*40,1,275);}
+        if(other.hp<=0)other.dead=true;
+      }
+      shake(16);
     }
   }
 }
