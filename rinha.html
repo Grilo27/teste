@@ -709,21 +709,74 @@ function _drawElementAura(c,cx,gy,pl){
   c.restore();
 }
 
+/* ── 2D rooster shape for char-select preview ─────────────────── */
+function _draw2DRooster(c,cx,cy,featherHue,facing,scale){
+  const s=scale||1,f=facing||1;
+  c.save();c.translate(cx,cy);c.scale(f*s,s);
+  const fc='hsl('+featherHue+',70%,36%)';
+  const lc='hsl('+featherHue+',75%,55%)';
+  const cc='hsl('+((featherHue+170)%360)+',90%,48%)';
+  // tail feathers
+  c.fillStyle=lc;
+  for(let i=0;i<5;i++){
+    const a=-2.0+i*0.85,len=32+Math.abs(i-2)*7;
+    c.beginPath();c.moveTo(-12,-26);
+    c.lineTo(-12+Math.cos(a)*len,-26+Math.sin(a)*len-6);
+    c.lineTo(-12+Math.cos(a+0.22)*len,-26+Math.sin(a+0.22)*len-6);
+    c.closePath();c.fill();
+  }
+  // body
+  c.fillStyle=fc;
+  c.beginPath();c.ellipse(0,-28,18,21,-0.15,0,Math.PI*2);c.fill();
+  // wing
+  c.fillStyle=lc;
+  c.beginPath();c.ellipse(2,-30,12,13,0.3,0,Math.PI*2);c.fill();
+  // neck
+  c.fillStyle=lc;
+  c.beginPath();c.ellipse(10,-50,7,13,-0.2,0,Math.PI*2);c.fill();
+  // head
+  c.fillStyle=lc;
+  c.beginPath();c.arc(12,-63,12,0,Math.PI*2);c.fill();
+  // comb (3 bumps)
+  c.fillStyle=cc;
+  c.beginPath();c.ellipse(8,-78,4,7,0.2,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(13,-81,3.5,6,0,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(17,-78,3,5,-0.2,0,Math.PI*2);c.fill();
+  // wattle
+  c.beginPath();c.ellipse(14,-68,3,5,0,0,Math.PI*2);c.fill();
+  // beak
+  c.fillStyle='#ffcc20';
+  c.beginPath();c.moveTo(21,-63);c.lineTo(31,-67);c.lineTo(31,-60);c.closePath();c.fill();
+  // eye
+  c.fillStyle='#fff';c.beginPath();c.arc(18,-65,3.5,0,Math.PI*2);c.fill();
+  c.fillStyle='#222';c.beginPath();c.arc(19,-65,2,0,Math.PI*2);c.fill();
+  // legs
+  c.strokeStyle='#bb9020';c.lineWidth=3.5;c.lineCap='round';
+  c.beginPath();c.moveTo(-2,-10);c.lineTo(-4,4);c.stroke();
+  c.beginPath();c.moveTo(8,-10);c.lineTo(8,4);c.stroke();
+  c.lineWidth=2;
+  c.beginPath();c.moveTo(-4,4);c.lineTo(-11,7);c.stroke();
+  c.beginPath();c.moveTo(-4,4);c.lineTo(2,7);c.stroke();
+  c.beginPath();c.moveTo(8,4);c.lineTo(1,7);c.stroke();
+  c.beginPath();c.moveTo(8,4);c.lineTo(14,7);c.stroke();
+  c.restore();
+}
+
 /* ── 3D rooster position + state updater ────────────────────────── */
 function _drawRooster(c,cx,gy,pl){
   let key;
   if(pl===p1) key='r1';
   else if(pl===p2) key='r2';
-  else key=(pl.facing===1)?'preview1':'preview2';
-  // rebuild preview if element changed
-  if(key==='preview1'||key==='preview2'){
-    if(!rooster3D[key]||rooster3D[key]._element!==pl.element){
-      if(rooster3D[key])scene3.remove(rooster3D[key].group);
-      rooster3D[key]=build3DRooster(pl.feathers,pl.element);
-      rooster3D[key]._element=pl.element;
-      rooster3D[key].group.scale.x=pl.facing;
-      scene3.add(rooster3D[key].group);
+  else {
+    // char-select preview: draw 2D directly, no 3D model needed
+    _draw2DRooster(c,cx,gy,pl.feathers,pl.facing,1.35);
+    if(!pl.hideTag){
+      c.font='bold 12px Georgia';c.textAlign='center';
+      const ty=gy-(pl.h||64);
+      c.fillStyle='rgba(0,0,0,.65)';c.fillRect(cx-32,ty-18,64,16);
+      c.fillStyle='hsl('+pl.feathers+',95%,82%)';c.fillText(pl.name,cx,ty-6);
     }
+    return;
   }
   const r3=rooster3D[key];
   if(!r3)return;
@@ -1086,17 +1139,14 @@ function _drawSelectPanel(panelX,idx,confirmed,facing,playerLabel,ctrlHint){
   _statBar(bx,234,bw,bh,r.stats.atk,10,'#ff6040','ATK');
   _statBar(bx,250,bw,bh,r.stats.def,10,'#60e080','DEF');
 
-  // rooster preview (scale 1.35 around foot point)
+  // rooster preview
   const rgy=395, rcx=cx;
-  ctx.save();
-  ctx.translate(rcx,rgy);ctx.scale(1.35,1.35);ctx.translate(-rcx,-rgy);
   const mock={feathers:r.feathers,comb:r.comb,element:r.element,facing,state:'idle',
                animT:Date.now()*.015,wingFlap:0,h:64,name:r.name,hideTag:true,
                burning:0,frozen:0,stunned:0,poisoned:0,phaseFrames:0,hp:100,maxHp:100,
                ability:r.ability,frenesiTimer:0};
   _drawElementAura(ctx,rcx,rgy,mock);
   _drawRooster(ctx,rcx,rgy,mock);
-  ctx.restore();
 
   // roster index dots
   const dotY=422,dotSpacing=18;
@@ -1327,24 +1377,6 @@ function _buildArena3D(){
     }
   });
 
-  // Crowd (daytime bright farm colors)
-  const crowdCols=[0xe83030,0x2860e0,0x20c040,0xe8b020,0xc030d8,0x20d8c8,0xe86020,0xd8e020];
-  for(let row=0;row<3;row++){
-    for(let x=-470;x<470;x+=15+row*4){
-      if(Math.abs(x)<200&&row===0)continue;
-      const ci=(Math.floor(x/20)+row*3+200)%crowdCols.length;
-      const g=new THREE.Group();
-      const headM=new THREE.Mesh(new THREE.SphereGeometry(5.5,6,5),new THREE.MeshLambertMaterial({color:0xb88050}));
-      headM.position.y=18;g.add(headM);
-      const bodyM=new THREE.Mesh(new THREE.BoxGeometry(9,14,5),new THREE.MeshLambertMaterial({color:crowdCols[ci]}));
-      bodyM.position.y=7;g.add(bodyM);
-      const wy=215+row*22;
-      g.position.set(x,wy,-84-row*14);
-      g.rotation.y=(Math.random()-0.5)*0.3;
-      scene3.add(g);
-      _crowdMeshes.push({g:g,baseY:wy,phase:Math.random()*Math.PI*2,row:row});
-    }
-  }
 }
 
 function build3DRooster(featherHue,element){
@@ -1459,10 +1491,6 @@ function render3D(shakeX,shakeY){
   const t=Date.now()*.001;
   // animate arena ring (daytime warm glow)
   if(_arenaRing)_arenaRing.material.opacity=0.50+Math.sin(t*1.8)*0.12;
-  // animate crowd
-  _crowdMeshes.forEach(function(cm){
-    cm.g.position.y=cm.baseY+Math.sin(t*2+cm.phase)*3*(1-cm.row*0.22);
-  });
   // camera shake
   camera3.position.x=shakeX*0.28;
   camera3.position.y=190+Math.abs(shakeY)*0.28;
