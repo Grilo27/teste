@@ -135,6 +135,56 @@ const ROSTERS=[
    specialName:'SLAM SÍSMICO',specialDesc:'Salta alto e cai com força máxima',
    stats:{vel:3,atk:9,def:9},
    ability:{speed:3,atkDmg:13,atkCD:45,spurDmg:35,spurCD:90,kbMult:2,defMult:0.72,dblJump:false,specialCD:460}},
+  {name:'TEMPESTADE',feathers:195,comb:205,element:'storm',
+   abilityName:'VENTO CORTANTE',abilityDesc:['Correntes de ar giratórias.','Velocidade dos ventos.'],
+   specialName:'FURACÃO TOTAL',specialDesc:'Tornado que aspira e machuca o inimigo',
+   stats:{vel:8,atk:6,def:5},
+   ability:{speed:7,atkDmg:8,atkCD:22,spurDmg:20,spurCD:60,kbMult:1.5,defMult:0.95,dblJump:true,specialCD:350}},
+  {name:'DRAGÃO',    feathers:18, comb:10, element:'dragon',
+   abilityName:'SOPRO DE FOGO',abilityDesc:['Bafo de chamas queima.','Armadura de escamas.'],
+   specialName:'VÔOS DE DRAGÃO',specialDesc:'Ataque aéreo devastador em mergulho',
+   stats:{vel:5,atk:9,def:8},
+   ability:{speed:4.5,atkDmg:14,atkCD:40,spurDmg:32,spurCD:85,kbMult:1.8,defMult:0.75,dblJump:false,specialCD:440}},
+  {name:'FÊNIX',    feathers:25, comb:15, element:'phoenix',
+   abilityName:'RENASCIMENTO',abilityDesc:['Ressurge uma vez com HP.','Chamas purificadoras.'],
+   specialName:'AURA DE CHAMAS',specialDesc:'Envolve o galo em chamas eternas por 5s',
+   stats:{vel:6,atk:7,def:6},
+   ability:{speed:5.5,atkDmg:11,atkCD:30,spurDmg:24,spurCD:72,kbMult:1.2,defMult:1,dblJump:true,specialCD:410}},
+  {name:'OCEANO',   feathers:215,comb:225,element:'water',
+   abilityName:'MARÉ ALTA',abilityDesc:['Ondas de choque aquáticas.','Resistência hídrica.'],
+   specialName:'TSUNAMI',specialDesc:'Onda gigante atravessa toda a arena',
+   stats:{vel:5,atk:7,def:7},
+   ability:{speed:5,atkDmg:10,atkCD:32,spurDmg:22,spurCD:70,kbMult:1.3,defMult:0.9,dblJump:false,specialCD:400}},
+  {name:'PLASMA',   feathers:168,comb:178,element:'plasma',
+   abilityName:'DESCARGA ELÉTRICA',abilityDesc:['Raios de plasma certeiros.','Velocidade da luz.'],
+   specialName:'PULSO MAGNÉTICO',specialDesc:'EMP que atordoa e paralisa o inimigo',
+   stats:{vel:9,atk:6,def:4},
+   ability:{speed:8,atkDmg:8,atkCD:18,spurDmg:18,spurCD:55,kbMult:1.0,defMult:1,dblJump:false,specialCD:330}},
+  {name:'ARANHA',   feathers:80, comb:90, element:'web',
+   abilityName:'TEIA VENENOSA',abilityDesc:['Esporão envolve em teia.','Veneno lento mas letal.'],
+   specialName:'ARMADILHA TOTAL',specialDesc:'Teia imobiliza o inimigo por 2s',
+   stats:{vel:6,atk:7,def:6},
+   ability:{speed:5.5,atkDmg:10,atkCD:25,spurDmg:18,spurCD:62,kbMult:0.9,defMult:1,dblJump:false,specialCD:360}},
+  {name:'ESPECTRO', feathers:245,comb:255,element:'spirit',
+   abilityName:'POSSESSÃO',abilityDesc:['Atravessa ataques físicos.','Orbes espectrais.'],
+   specialName:'BANIMENTO',specialDesc:'Manda o inimigo ao plano espectral 3s',
+   stats:{vel:7,atk:6,def:6},
+   ability:{speed:6,atkDmg:9,atkCD:28,spurDmg:20,spurCD:65,kbMult:0.85,defMult:0.9,dblJump:true,specialCD:430}},
+  {name:'MAGMA',    feathers:10, comb:5,  element:'magma',
+   abilityName:'NÚCLEO DERRETIDO',abilityDesc:['Ataque derrete defesas.','Resistência ao dano.'],
+   specialName:'ERUPÇÃO',specialDesc:'Pilares de lava explodem ao redor',
+   stats:{vel:3,atk:10,def:9},
+   ability:{speed:3.5,atkDmg:16,atkCD:50,spurDmg:40,spurCD:100,kbMult:2.0,defMult:0.65,dblJump:false,specialCD:470}},
+  {name:'SOMBRA_N', feathers:305,comb:315,element:'dark_titan',
+   abilityName:'ESCUDO NEGRO',abilityDesc:['Bloqueia ataques com escudo.','Contra-ataque brutal.'],
+   specialName:'COLAPSO SOMBRIO',specialDesc:'Esfera negra que suga e explode',
+   stats:{vel:4,atk:9,def:9},
+   ability:{speed:4,atkDmg:13,atkCD:42,spurDmg:34,spurCD:88,kbMult:1.9,defMult:0.7,dblJump:false,specialCD:455}},
+  {name:'COSMOS',   feathers:272,comb:282,element:'cosmos',
+   abilityName:'GRAVIDADE',abilityDesc:['Atração gravitacional.','Viagem entre dimensões.'],
+   specialName:'BURACO NEGRO',specialDesc:'Suga o inimigo para o centro por 3s',
+   stats:{vel:6,atk:7,def:7},
+   ability:{speed:5.5,atkDmg:11,atkCD:28,spurDmg:22,spurCD:68,kbMult:1.4,defMult:0.88,dblJump:true,specialCD:380}},
 ];
 
 /* ── util ────────────────────────────────────────────────────────── */
@@ -920,9 +970,23 @@ function _drawFoot(c,ax,ay,f){
 
 /* ── ARENA — Three.js renders the scene, ctx is transparent overlay ── */
 function drawArena(){
-  // Three.js handles the 3D scene via render3D() in the loop
-  // ctx is transparent — just clear it for HUD overlay
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(0,0,W,H);
+  // Draw elevated platforms (skip ground platform at index 0)
+  const plats=PLATFORMS.slice(1);
+  for(const p of plats){
+    const g=ctx.createLinearGradient(p.x,p.y,p.x,p.y+p.h);
+    g.addColorStop(0,'#c8922a');g.addColorStop(0.4,'#a8721a');g.addColorStop(1,'#7a5010');
+    ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,p.h,4);ctx.fill();
+    ctx.strokeStyle='#3c2008';ctx.lineWidth=2;ctx.stroke();
+    // wood grain lines
+    ctx.strokeStyle='rgba(0,0,0,0.18)';ctx.lineWidth=1;
+    for(let gx=p.x+20;gx<p.x+p.w-10;gx+=22){
+      ctx.beginPath();ctx.moveTo(gx,p.y+2);ctx.lineTo(gx+4,p.y+p.h-2);ctx.stroke();
+    }
+    // top highlight
+    ctx.strokeStyle='rgba(255,220,120,0.35)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(p.x+4,p.y+1);ctx.lineTo(p.x+p.w-4,p.y+1);ctx.stroke();
+  }
 }
 
 /* ── HUD ─────────────────────────────────────────────────────────── */
