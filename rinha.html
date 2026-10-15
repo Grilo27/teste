@@ -709,122 +709,104 @@ function _drawElementAura(c,cx,gy,pl){
   c.restore();
 }
 
-/* ── 2D rooster shape for char-select preview ─────────────────── */
-function _draw2DRooster(c,cx,cy,featherHue,facing,scale){
+/* ── 2D rooster — all states, char-select + gameplay ─────────────── */
+function _draw2DRooster(c,cx,cy,featherHue,facing,scale,state,t,isHit){
   const s=scale||1,f=facing||1;
-  c.save();c.translate(cx,cy);c.scale(f*s,s);
-  const fc='hsl('+featherHue+',70%,36%)';
-  const lc='hsl('+featherHue+',75%,55%)';
-  const cc='hsl('+((featherHue+170)%360)+',90%,48%)';
-  // tail feathers
-  c.fillStyle=lc;
-  for(let i=0;i<5;i++){
-    const a=-2.0+i*0.85,len=32+Math.abs(i-2)*7;
-    c.beginPath();c.moveTo(-12,-26);
-    c.lineTo(-12+Math.cos(a)*len,-26+Math.sin(a)*len-6);
-    c.lineTo(-12+Math.cos(a+0.22)*len,-26+Math.sin(a+0.22)*len-6);
+  t=t||0; state=state||'idle';
+  let bY=0,bTilt=0,nTilt=-0.18,hTilt=0,lLA=0,rLA=0,wS=0,tailS=0;
+  if(state==='idle'){
+    bY=Math.sin(t*4.2)*2.5; nTilt=-0.18+Math.sin(t*2.8)*0.05;
+    tailS=Math.sin(t*2.5)*0.06;
+  }else if(state==='peck'){
+    bTilt=-0.22;nTilt=0.3;hTilt=0.18;lLA=0.32;bY=4;
+  }else if(state==='spur'){
+    bY=-10;bTilt=0.12;lLA=-0.72;rLA=0.42;wS=0.85;
+  }else if(state==='air'){
+    bTilt=-0.22;wS=1.1;lLA=0.45;rLA=0.45;bY=-6;
+  }else if(state==='hurt'){
+    bTilt=0.42;bY=-4;nTilt=0.32;hTilt=0.28;
+  }else if(state==='walk'){
+    const sw=Math.sin(t*10)*0.38; lLA=sw;rLA=-sw;bY=-Math.abs(Math.sin(t*10))*3;
+  }else if(state==='dead'){
+    bTilt=1.4;bY=-10;nTilt=0.5;
+  }
+  const dark =isHit?'hsl('+featherHue+',38%,72%)':'hsl('+featherHue+',72%,38%)';
+  const light=isHit?'hsl('+featherHue+',48%,84%)':'hsl('+featherHue+',76%,56%)';
+  const comb =isHit?'rgba(255,170,170,1)':'hsl('+((featherHue+170)%360)+',90%,50%)';
+  c.save();
+  c.translate(cx,cy);c.scale(f*s,s);c.translate(0,bY);c.rotate(bTilt);
+  // shadow
+  c.save();c.rotate(-bTilt);c.translate(0,-bY);
+  c.fillStyle='rgba(0,0,0,0.16)';
+  c.beginPath();c.ellipse(0,5,24,8,0,0,Math.PI*2);c.fill();
+  c.restore();
+  // tail
+  c.save();
+  for(let i=0;i<7;i++){
+    const a=-2.5+i*0.82+tailS,len=26+Math.abs(i-3)*8;
+    c.fillStyle=i%2===0?dark:light;
+    c.beginPath();c.moveTo(-13,-22);
+    c.lineTo(-13+Math.cos(a)*len,-22+Math.sin(a)*len);
+    c.lineTo(-13+Math.cos(a+0.3)*len,-22+Math.sin(a+0.3)*len);
     c.closePath();c.fill();
   }
-  // body
-  c.fillStyle=fc;
-  c.beginPath();c.ellipse(0,-28,18,21,-0.15,0,Math.PI*2);c.fill();
-  // wing
-  c.fillStyle=lc;
-  c.beginPath();c.ellipse(2,-30,12,13,0.3,0,Math.PI*2);c.fill();
-  // neck
-  c.fillStyle=lc;
-  c.beginPath();c.ellipse(10,-50,7,13,-0.2,0,Math.PI*2);c.fill();
-  // head
-  c.fillStyle=lc;
-  c.beginPath();c.arc(12,-63,12,0,Math.PI*2);c.fill();
-  // comb (3 bumps)
-  c.fillStyle=cc;
-  c.beginPath();c.ellipse(8,-78,4,7,0.2,0,Math.PI*2);c.fill();
-  c.beginPath();c.ellipse(13,-81,3.5,6,0,0,Math.PI*2);c.fill();
-  c.beginPath();c.ellipse(17,-78,3,5,-0.2,0,Math.PI*2);c.fill();
-  // wattle
-  c.beginPath();c.ellipse(14,-68,3,5,0,0,Math.PI*2);c.fill();
-  // beak
-  c.fillStyle='#ffcc20';
-  c.beginPath();c.moveTo(21,-63);c.lineTo(31,-67);c.lineTo(31,-60);c.closePath();c.fill();
-  // eye
-  c.fillStyle='#fff';c.beginPath();c.arc(18,-65,3.5,0,Math.PI*2);c.fill();
-  c.fillStyle='#222';c.beginPath();c.arc(19,-65,2,0,Math.PI*2);c.fill();
-  // legs
-  c.strokeStyle='#bb9020';c.lineWidth=3.5;c.lineCap='round';
-  c.beginPath();c.moveTo(-2,-10);c.lineTo(-4,4);c.stroke();
-  c.beginPath();c.moveTo(8,-10);c.lineTo(8,4);c.stroke();
-  c.lineWidth=2;
-  c.beginPath();c.moveTo(-4,4);c.lineTo(-11,7);c.stroke();
-  c.beginPath();c.moveTo(-4,4);c.lineTo(2,7);c.stroke();
-  c.beginPath();c.moveTo(8,4);c.lineTo(1,7);c.stroke();
-  c.beginPath();c.moveTo(8,4);c.lineTo(14,7);c.stroke();
   c.restore();
+  // body
+  c.fillStyle=dark;c.beginPath();c.ellipse(0,-28,19,23,-0.18,0,Math.PI*2);c.fill();
+  // belly highlight
+  c.fillStyle=light;c.beginPath();c.ellipse(5,-31,10,14,-0.1,0,Math.PI*2);c.fill();
+  // wing
+  c.save();c.rotate(-wS*0.42);
+  c.fillStyle=light;c.beginPath();c.ellipse(2,-30,13+wS*8,15,-0.28+wS*0.55,0,Math.PI*2);c.fill();
+  c.restore();
+  // legs
+  c.strokeStyle='#b89020';c.lineCap='round';
+  c.save();c.rotate(lLA);c.lineWidth=3;
+  c.beginPath();c.moveTo(-3,-10);c.lineTo(-5,7);c.stroke();
+  c.lineWidth=2;
+  c.beginPath();c.moveTo(-5,7);c.lineTo(-13,11);c.stroke();
+  c.beginPath();c.moveTo(-5,7);c.lineTo(2,11);c.stroke();
+  c.beginPath();c.moveTo(-5,7);c.lineTo(-5,13);c.stroke();
+  c.restore();
+  c.save();c.rotate(rLA);c.lineWidth=3;
+  c.beginPath();c.moveTo(6,-10);c.lineTo(8,7);c.stroke();
+  c.lineWidth=2;
+  c.beginPath();c.moveTo(8,7);c.lineTo(0,11);c.stroke();
+  c.beginPath();c.moveTo(8,7);c.lineTo(15,11);c.stroke();
+  c.beginPath();c.moveTo(8,7);c.lineTo(8,13);c.stroke();
+  c.restore();
+  // neck
+  c.save();c.translate(10,-47);c.rotate(nTilt+0.18);
+  c.fillStyle=light;c.beginPath();c.ellipse(0,0,7,15,0,0,Math.PI*2);c.fill();
+  // head
+  c.translate(0,-17);c.rotate(hTilt);
+  c.fillStyle=light;c.beginPath();c.arc(2,0,13,0,Math.PI*2);c.fill();
+  if(state==='dead'){
+    c.strokeStyle='#333';c.lineWidth=2;
+    c.beginPath();c.moveTo(6,-5);c.lineTo(12,1);c.stroke();
+    c.beginPath();c.moveTo(12,-5);c.lineTo(6,1);c.stroke();
+  }else{
+    c.fillStyle='#fff';c.beginPath();c.arc(10,-2,4,0,Math.PI*2);c.fill();
+    c.fillStyle='#1a1a1a';c.beginPath();c.arc(11,-2,2.5,0,Math.PI*2);c.fill();
+    c.fillStyle='#fff';c.beginPath();c.arc(12,-3,1,0,Math.PI*2);c.fill();
+  }
+  c.fillStyle=comb;
+  c.beginPath();c.ellipse(-2,-14,4,7,0.2,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(3,-17,3.5,6,0,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(8,-14,3,5,-0.2,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(7,-4,3,5,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#ffcc20';
+  c.beginPath();c.moveTo(13,0);c.lineTo(25,-4);c.lineTo(25,4);c.closePath();c.fill();
+  c.restore();c.restore();
 }
 
-/* ── 3D rooster position + state updater ────────────────────────── */
+/* ── rooster draw: 2D for all cases ─────────────────────────────── */
 function _drawRooster(c,cx,gy,pl){
-  let key;
-  if(pl===p1) key='r1';
-  else if(pl===p2) key='r2';
-  else {
-    // char-select preview: draw 2D directly, no 3D model needed
-    _draw2DRooster(c,cx,gy,pl.feathers,pl.facing,1.35);
-    if(!pl.hideTag){
-      c.font='bold 12px Georgia';c.textAlign='center';
-      const ty=gy-(pl.h||64);
-      c.fillStyle='rgba(0,0,0,.65)';c.fillRect(cx-32,ty-18,64,16);
-      c.fillStyle='hsl('+pl.feathers+',95%,82%)';c.fillText(pl.name,cx,ty-6);
-    }
-    return;
-  }
-  const r3=rooster3D[key];
-  if(!r3)return;
-  const now=Date.now(),t=now*.001;
-  // map game coords to Three.js world (x: center at 480, y: up-axis flipped)
-  r3.group.position.set(cx-480, GROUND_Y-gy, 0);
-  r3.group.scale.x=pl.facing;
-  // reset transforms
-  r3.body.position.y=0;r3.body.rotation.z=0;
-  r3.neck.rotation.z=-0.22;r3.neck.rotation.x=0;
-  r3.head.rotation.z=0;
-  r3.tail.rotation.z=0.55;
-  r3.lWing.rotation.z=0;r3.rWing.rotation.z=0;
-  r3.lLeg.rotation.z=0;r3.rLeg.rotation.z=0;
-  const st=pl.state;
-  if(st==='idle'){
-    r3.body.position.y=Math.sin(t*4.2)*2;
-    r3.neck.rotation.z=-0.22+Math.sin(t*2.8)*.04;
-    r3.tail.rotation.z=0.55+Math.sin(t*2.5)*.06;
-  } else if(st==='peck'){
-    r3.body.rotation.z=-0.14;
-    r3.neck.rotation.z=0.18;r3.neck.rotation.x=0.15;
-    r3.head.rotation.z=0.1;r3.lLeg.rotation.z=0.25;
-  } else if(st==='spur'){
-    r3.body.position.y=8;r3.body.rotation.z=0.1;
-    r3.lLeg.rotation.z=-0.65;r3.rLeg.rotation.z=0.35;
-    r3.lWing.rotation.z=0.7;r3.rWing.rotation.z=0.7;
-  } else if(st==='air'){
-    r3.body.rotation.z=-0.18;
-    r3.lWing.rotation.z=0.9;r3.rWing.rotation.z=0.9;
-    r3.lLeg.rotation.z=0.3;r3.rLeg.rotation.z=0.3;
-  } else if(st==='hurt'){
-    r3.body.rotation.z=0.32;r3.body.position.y=4;
-    r3.neck.rotation.z=0.28;r3.head.rotation.z=0.22;
-  } else if(st==='walk'){
-    const sw=Math.sin(t*10)*.3;
-    r3.lLeg.rotation.z=sw;r3.rLeg.rotation.z=-sw;
-    r3.body.position.y=Math.abs(Math.sin(t*10))*2.5;
-  }
-  // hit flash
-  if(pl.hitTimer>0){
-    const flash=pl.hitTimer/28;
-    r3.group.traverse(m=>{if(m.isMesh&&m.material&&m.material.emissive)m.material.emissive.setRGB(flash*.9,flash*.06,flash*.04);});
-  } else {
-    r3.group.traverse(m=>{if(m.isMesh&&m.material&&m.material.emissive)m.material.emissive.setRGB(0,0,0);});
-  }
-  if(r3.elLight)r3.elLight.intensity=.5+Math.sin(t*3.5)*.3+(pl.frenesiTimer>0?.6:0);
-  // name tag on transparent ctx overlay
+  const isPreview=(pl!==p1&&pl!==p2);
+  const scale=isPreview?1.35:0.82;
+  const t=Date.now()*0.001;
+  const isHit=pl.hitTimer>0&&Math.floor(pl.hitTimer/3)%2===0;
+  _draw2DRooster(c,cx,gy,pl.feathers,pl.facing,scale,pl.state,t,isHit);
   if(!pl.hideTag){
     c.font='bold 12px Georgia';c.textAlign='center';
     const ty=gy-(pl.h||64);
@@ -1509,13 +1491,6 @@ function startGame(r1,r2){
   p2=new Player({...r2,startX:W-250,facing:-1, ctrl:c2});
   tLeft=RT;winner=null;PT.length=0;gState='playing';
   K['Enter']=K['NumpadEnter']=K['ArrowUp']=K['KeyW']=false;
-  // rebuild 3D rooster models
-  if(rooster3D.r1)scene3.remove(rooster3D.r1.group);
-  if(rooster3D.r2)scene3.remove(rooster3D.r2.group);
-  rooster3D.r1=build3DRooster(r1.feathers,r1.element);
-  rooster3D.r2=build3DRooster(r2.feathers,r2.element);
-  scene3.add(rooster3D.r1.group);
-  scene3.add(rooster3D.r2.group);
 }
 
 function checkEnd(){
