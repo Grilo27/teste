@@ -6,7 +6,7 @@
   html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:0;margin:0;}
   #wrap{position:relative;width:100%;max-width:960px;display:block;}
   #gl3{display:block;width:100%;aspect-ratio:16/9;border:3px solid #8a2500;box-shadow:0 0 40px rgba(180,60,0,.45),0 0 80px rgba(90,20,0,.4);}
-  #game{position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;pointer-events:none;}
+  #game{position:absolute;top:0;left:0;width:100%;aspect-ratio:16/9;background:transparent;pointer-events:none;}
   #hint{color:#3a5a20;font-family:monospace;font-size:9px;text-align:center;letter-spacing:.5px;margin-top:2px;}
   #ctrl{position:absolute;bottom:0;left:0;width:100%;display:flex;justify-content:space-between;align-items:flex-end;padding:0 5px 5px;box-sizing:border-box;pointer-events:none;z-index:10;}
   @media(pointer:fine){#ctrl{display:none;}}
@@ -197,6 +197,15 @@ const K={};
 const KQ=[];
 window.addEventListener('keydown',e=>{K[e.code]=true;KQ.push(e.code);e.preventDefault();});
 window.addEventListener('keyup',  e=>{K[e.code]=false;});
+// tap anywhere on canvas = Enter (menu/charSelect navigation on mobile)
+document.getElementById('gl3').addEventListener('touchstart',e=>{
+  if(gState==='menu'||gState==='over'){tbPress('Enter',true);setTimeout(()=>tbPress('Enter',false),80);}
+  else if(gState==='charSelect'){
+    // single tap confirms both players on mobile solo
+    if(!cs.p1OK){tbPress('KeyW',true);setTimeout(()=>tbPress('KeyW',false),80);}
+    else if(!cs.p2OK){tbPress('ArrowUp',true);setTimeout(()=>tbPress('ArrowUp',false),80);}
+  }
+},{passive:true});
 
 function tbPress(code,down){K[code]=down;if(down)KQ.push(code);}
 (()=>{
@@ -1123,10 +1132,10 @@ function drawMenu(){
   tg.addColorStop(0,'#ff4400');tg.addColorStop(.5,'#ffd040');tg.addColorStop(1,'#ff4400');
   ctx.fillStyle=tg;ctx.fillText('RINHA DE GALO',W/2,190);ctx.restore();
   ctx.font='24px "Bebas Neue",Impact,serif';ctx.fillStyle='#b8946a';ctx.textAlign='center';
-  ctx.fillText('2 JOGADORES — MESMO TECLADO',W/2,236);
   const a=.65+Math.sin(pulse)*.35;
   ctx.font='bold 20px "Bebas Neue",Impact,serif';ctx.fillStyle=`rgba(255,220,100,${a})`;
-  ctx.fillText('PRESSIONE ENTER PARA COMEÇAR',W/2,350);
+  const isTouchDev=('ontouchstart' in window);
+  ctx.fillText(isTouchDev?'TOQUE NA TELA PARA COMEÇAR':'PRESSIONE ENTER PARA COMEÇAR',W/2,350);
   _drawCtrlCard(ctx,120,400,true);_drawCtrlCard(ctx,W-370,400,false);
 }
 
@@ -1174,7 +1183,7 @@ let _torchLights=[], _crowdMeshes=[], _arenaRing, _stars;
 function init3D(){
   const gl3=document.getElementById('gl3');
   renderer3=new THREE.WebGLRenderer({canvas:gl3,antialias:true,powerPreference:'high-performance'});
-  renderer3.setSize(W,H);
+  renderer3.setSize(W,H,false);  // false = don't override CSS width/height
   renderer3.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer3.shadowMap.enabled=true;
   renderer3.shadowMap.type=THREE.PCFSoftShadowMap;
